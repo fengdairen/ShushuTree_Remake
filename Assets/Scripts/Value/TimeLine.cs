@@ -16,6 +16,16 @@ public class TimeLine : MonoBehaviour
     public EatFood eatFood;
     public WallNutManager wallNutManager;
 
+    public GameObject dayBackGround;
+    public Sprite daySprite;
+    public Sprite nightSprite;
+    public Sprite duskSprite;
+
+    private void Start()
+    {
+        UpdateDayBackgroundByTime();
+    }
+
 
     // 每帧累计时间，并按“每秒”驱动一次生产逻辑检测。
     private void Update()
@@ -49,12 +59,49 @@ public class TimeLine : MonoBehaviour
             }
         }
 
+        UpdateDayBackgroundByTime();
+
         var baseData = BaseData.instance;
         if (baseData == null || buildingPool == null || baseData.roomList == null) return;
 
         ResolveProduction(baseData);
         TryStartProduction(baseData);
     }
+
+    #region 昼夜背景功能
+
+    // 按天内秒数切换背景：1~130 白天，130~150 黄昏，147~153 夜晚（夜晚优先级更高）。
+    private void UpdateDayBackgroundByTime()
+    {
+        if (dayBackGround == null)
+        {
+            return;
+        }
+
+        Sprite targetSprite = daySprite;
+
+        if (secondInDay >= 147 && secondInDay <= 153)
+        {
+            targetSprite = nightSprite;
+        }
+        else if (secondInDay >= 130 && secondInDay <= 150)
+        {
+            targetSprite = duskSprite;
+        }
+
+        var spriteRenderer = dayBackGround.GetComponent<SpriteRenderer>();
+        if (spriteRenderer == null)
+        {
+            return;
+        }
+
+        if (spriteRenderer.sprite != targetSprite)
+        {
+            spriteRenderer.sprite = targetSprite;
+        }
+    }
+
+    #endregion
 
     // 结算所有已完成等待时间的生产周期。
     private void ResolveProduction(BaseData baseData)

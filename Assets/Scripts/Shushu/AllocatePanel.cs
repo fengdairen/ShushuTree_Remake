@@ -6,6 +6,10 @@ using UnityEngine.EventSystems;
 
 public class AllocatePanel : MonoBehaviour
 {
+    private const int BuffInsectPhobia = 1;
+    private const int BuffBadCook = 2;
+    private const int BuffPineconeAllergy = 3;
+
     public GameObject[] UpPhoto = new GameObject[5];
     public GameObject[] DownPhoto = new GameObject[5];
 
@@ -379,6 +383,12 @@ public class AllocatePanel : MonoBehaviour
             {
                 continue;
             }
+
+            if (!CanAssignToCurrentBuilding(shu))
+            {
+                continue;
+            }
+
             EnsureShushuId(shu);
             result.Add(shu);
         }
@@ -419,6 +429,15 @@ public class AllocatePanel : MonoBehaviour
     {
         if (shu == null || currentRoom == null)
         {
+            return;
+        }
+
+        if (!CanAssignToCurrentBuilding(shu))
+        {
+            if (ShushuText != null)
+            {
+                ShushuText.text = "该鼠鼠无法从事当前建筑工作";
+            }
             return;
         }
 
@@ -494,6 +513,49 @@ public class AllocatePanel : MonoBehaviour
         }
 
         return null;
+    }
+
+    // 判断鼠鼠是否能分配到当前建筑（根据禁用buff规则过滤）。
+    private bool CanAssignToCurrentBuilding(Shushu shu)
+    {
+        if (shu == null)
+        {
+            return false;
+        }
+
+        int buildingId;
+        if (!int.TryParse(currentBuildingId, out buildingId))
+        {
+            return true;
+        }
+
+        if (buildingId >= 401 && buildingId <= 408 && HasBuff(shu, BuffInsectPhobia))
+        {
+            return false;
+        }
+
+        if ((buildingId == 701 || buildingId == 801) && HasBuff(shu, BuffBadCook))
+        {
+            return false;
+        }
+
+        if ((buildingId == 405 || buildingId == 406) && HasBuff(shu, BuffPineconeAllergy))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    // 判断鼠鼠是否拥有指定buff。
+    private bool HasBuff(Shushu shu, int buffId)
+    {
+        if (shu == null || buffId <= 0)
+        {
+            return false;
+        }
+
+        return shu.buffid1 == buffId || shu.buffid2 == buffId || shu.buffid3 == buffId;
     }
     #endregion
 

@@ -59,7 +59,7 @@ public class EatFood : MonoBehaviour
             totalNeedFood += Mathf.Max(0, shushu.foodIntake);
         }
 
-        int kitchenCount = 0;
+        bool hasActiveKitchen = false;
         int cafeteriaCount = 0;
 
         if (data.roomList != null)
@@ -74,7 +74,10 @@ public class EatFood : MonoBehaviour
 
                 if (room.buildingId == KitchenBuildingId)
                 {
-                    kitchenCount++;
+                    if (!hasActiveKitchen && HasWorkingShushuInRoom(data, room))
+                    {
+                        hasActiveKitchen = true;
+                    }
                 }
                 else if (room.buildingId == CafeteriaBuildingId)
                 {
@@ -83,10 +86,32 @@ public class EatFood : MonoBehaviour
             }
         }
 
-        int kitchenBonus = kitchenCount > 0 ? Mathf.FloorToInt(totalNeedFood * 0.05f) : 0;
+        int kitchenBonus = hasActiveKitchen ? Mathf.FloorToInt(totalNeedFood * 0.05f) : 0;
         int cafeteriaBonus = cafeteriaCount * 12;
 
         return Mathf.Max(0, kitchenBonus + cafeteriaBonus);
+    }
+
+    // 判断房间中是否存在已分配的有效工作鼠鼠
+    private bool HasWorkingShushuInRoom(BaseData data, Room room)
+    {
+        if (data == null || data.shushuList == null || room == null || room.shushuIds == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < room.shushuIds.Count; i++)
+        {
+            string id = room.shushuIds[i];
+            if (string.IsNullOrEmpty(id))
+            {
+                continue;
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     // 获取BaseData引用（可手动绑定，也可自动取单例）
