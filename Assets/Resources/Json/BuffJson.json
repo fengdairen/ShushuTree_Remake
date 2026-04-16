@@ -1,0 +1,141 @@
+{
+  "BuffList": [
+    {
+      "id": 1,
+      "name": "昆虫恐惧症",
+      "description": "这只鼠鼠不能从事农业工作",
+      "isCantDoJob": true
+    },
+    {
+      "id": 2,
+      "name": "黑暗料理者",
+      "description": "一位很有“想法”的厨师……别让他做饭",
+      "isCantDoJob": true
+    },
+    {
+      "id": 3,
+      "name": "松果过敏",
+      "description": "对松果过敏，不能种松果的松鼠",
+      "isCantDoJob": true
+    },
+    {
+      "id": 4,
+      "name": "体弱多病",
+      "description": "虚弱的鼠鼠",
+      "isCangeAbility": true,
+      "enduranceDelta": -2
+    },
+    {
+      "id": 5,
+      "name": "膝盖中了一箭",
+      "description": "受过伤的鼠鼠",
+      "isCangeAbility": true,
+      "enduranceDelta": -3
+    },
+    {
+      "id": 6,
+      "name": "重度近视",
+      "description": "视线模糊的鼠鼠",
+      "isCangeAbility": true,
+      "intelligenceDelta": -2
+    },
+    {
+      "id": 7,
+      "name": "懒癌",
+      "description": "懒惰的鼠鼠，降低耐力增长的概率"
+    },
+    {
+      "id": 8,
+      "name": "学习困难症",
+      "description": "难以学习的鼠鼠，降低智力增长的概率"
+    },
+    {
+      "id": 9,
+      "name": "麻瓜",
+      "description": "这只鼠鼠注定不能掌握自然能量的奥秘",
+      "isCangeAbility": true,
+      "magicPowerDelta": -20
+    },
+    {
+      "id": 10,
+      "name": "低悟性",
+      "description": "不擅长魔法的鼠鼠，降低魔力增长的概率"
+    },
+    {
+      "id": 11,
+      "name": "大胃袋",
+      "description": "只是吃得多",
+      "isFoodIntakeChange": true,
+      "foodIntakeChange": 10
+    },
+    {
+      "id": 12,
+      "name": "究极大胃袋",
+      "description": "只是吃得非常多",
+      "isFoodIntakeChange": true,
+      "foodIntakeChange": 20
+    },
+    {
+      "id": 13,
+      "name": "园艺高手",
+      "description": "精通农业的鼠鼠",
+      "isCangeAbility": true,
+      "enduranceDelta": 3
+    },
+    {
+      "id": 14,
+      "name": "身强体壮",
+      "description": "擅长农业劳作的鼠鼠",
+      "isCangeAbility": true,
+      "enduranceDelta": 2
+    },
+    {
+      "id": 15,
+      "name": "天资聪颖",
+      "description": "非常聪明的鼠鼠",
+      "isCangeAbility": true,
+      "intelligenceDelta": 2
+    },
+    {
+      "id": 16,
+      "name": "马猴烧酒",
+      "description": "很有魔法天赋的鼠鼠",
+      "isCangeAbility": true,
+      "magicPowerDelta": 2
+    },
+    {
+      "id": 17,
+      "name": "健美爱好者",
+      "description": "热爱撸铁，在健身房锻炼成功率更高"
+    },
+    {
+      "id": 18,
+      "name": "酷爱阅读者",
+      "description": "喜欢看轻小说，在图书馆学习成功率更高"
+    },
+    {
+      "id": 19,
+      "name": "喜爱魔法",
+      "description": "喜欢魔法，在妙妙屋学习成功率更高"
+    },
+    {
+      "id": 20,
+      "name": "幸运鼠",
+      "description": "欧皇体质，种植核桃时更容易出特殊核桃"
+    },
+    {
+      "id": 21,
+      "name": "精英HR",
+      "description": "非常善于发现人才的鼠鼠",
+      "isCangeAbility": true,
+      "intelligenceDelta": 5
+    },
+    {
+      "id": 22,
+      "name": "小鸟胃",
+      "description": "吃的比一般鼠鼠少",
+      "isFoodIntakeChange": true,
+      "foodIntakeChange": -3
+    }
+  ]
+}
