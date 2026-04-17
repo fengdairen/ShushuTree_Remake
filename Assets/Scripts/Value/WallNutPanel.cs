@@ -30,7 +30,7 @@ public class WallNutPanel : MonoBehaviour
         "谁不喜欢金色的小玩意呢",
         "我宣布不是金色的元宝核桃被淘汰了",
         "两个核桃长到了一起，看起来像数字8",
-        "三个核桃按照000样式长到了一起，这是怎么做到的？",
+        "三个核桃长到了一起，这是怎么做到的？",
         "这真的是该长出来的东西吗？"
     };
 
@@ -146,7 +146,7 @@ public class WallNutPanel : MonoBehaviour
             if (owned)
             {
                 int index = id - 1;
-                nutText.text = nutNames[index] + "\n" + nutDescriptions[index];
+                nutText.text = nutNames[index] + "\n" + nutDescriptions[index]+"\n现有数量：" + data.wallNutNum[index];
             }
             else
             {

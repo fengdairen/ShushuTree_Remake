@@ -11,6 +11,7 @@ public class Room
     public string buildingId;
     public string instanceId;
     public bool isProducing;
+    public bool isProductionPaused;
     public float finishAtSecond;
     public Queue<string> tiaozi = new Queue<string>();
     public bool isTiaozing;
@@ -35,6 +36,7 @@ public class Shushu
     public int foodIntake;
     public bool isHungry;
     public bool haveJob;
+    public bool isWorking;
 }
 
 
@@ -180,5 +182,35 @@ public class BaseData : MonoBehaviour
         wallNutNum[index] += 1;
     }
 
+    #endregion
+
+    #region 鼠鼠工作地点查询
+    // 通过鼠鼠ID遍历房间列表，返回该鼠鼠当前工作的房间；未找到则返回null。
+    public Room GetWorkRoomByShushuId(string shushuId)
+    {
+        if (string.IsNullOrEmpty(shushuId) || roomList == null)
+        {
+            return null;
+        }
+
+        for (int i = 0; i < roomList.Count; i++)
+        {
+            Room room = roomList[i];
+            if (room == null || room.shushuIds == null)
+            {
+                continue;
+            }
+
+            for (int j = 0; j < room.shushuIds.Count; j++)
+            {
+                if (room.shushuIds[j] == shushuId)
+                {
+                    return room;
+                }
+            }
+        }
+
+        return null;
+    }
     #endregion
 }

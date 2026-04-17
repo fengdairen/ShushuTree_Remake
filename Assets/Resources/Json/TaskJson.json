@@ -3,16 +3,16 @@
     {
       "id": 1,
       "taskName": "你好，大树！",
-      "description": "欢迎来到鼠鼠们的新家！领取下面的启动资金，开启我们的树间生活吧~",
+      "description": "欢迎来到鼠鼠们的新家！领取下面的启动资金，开启我们的树间生活吧~\n奖励：400果实",
       "conditions": [],
       "rewards": [
-        { "rewardType": 3, "amount": 300 }
+        { "rewardType": 3, "amount": 400 }
       ]
     },
     {
       "id": 2,
       "taskName": "招鼠鼠",
-      "description": "为家园招揽鼠鼠伙伴们吧！\n招募1只鼠鼠",
+      "description": "为家园招揽鼠鼠伙伴们吧！\n招募1只鼠鼠\n奖励：1000自然能量",
       "conditions": [
         {
           "conditionType": 3,
@@ -24,14 +24,14 @@
       "rewards": [
         {
           "rewardType": 1,
-          "amount": 800
+          "amount": 1000
         }
       ]
     },
     {
       "id": 3,
       "taskName": "住宿需求",
-      "description": "鼠鼠们需要一个温暖的休息空间\n拥有1个鼠鼠休息室",
+      "description": "鼠鼠们需要一个温暖的休息空间\n拥有1个鼠鼠休息室\n奖励：200果实",
       "conditions": [
         {
           "conditionType": 1,
@@ -43,14 +43,14 @@
       "rewards": [
         {
           "rewardType": 3,
-          "amount": 100
+          "amount": 200
         }
       ]
     },
     {
       "id": 4,
       "taskName": "基础运转",
-      "description": "鼠鼠树的正常运转需要这些基础的建筑\n拥有2个自然能量产生室、1个简式养分分析室、1个板栗结果仓",
+      "description": "鼠鼠树的正常运转需要这些基础的建筑\n拥有2个自然能量产生室、1个简式养分分析室、1个板栗结果仓\n奖励：400自然能量，200果实，200养分",
       "conditions": [
         {
           "conditionType": 1,
@@ -74,7 +74,7 @@
       "rewards": [
         {
           "rewardType": 1,
-          "amount": 300
+          "amount": 400
         },
         {
           "rewardType": 2,
@@ -89,7 +89,7 @@
     {
       "id": 5,
       "taskName": "鼠鼠食堂",
-      "description": "为鼠鼠们提供美味餐食可以提升工作积极性哦\n拥有1个鼠鼠食堂",
+      "description": "为鼠鼠们提供美味餐食可以提升工作积极性哦\n拥有1个鼠鼠食堂\n奖励：200自然能量",
       "conditions": [
         {
           "conditionType": 1,
@@ -108,7 +108,7 @@
     {
       "id": 6,
       "taskName": "大树升级1",
-      "description": "准备好扩建鼠鼠们的家园了吗？\n至少拥有6只松鼠，至少拥有500自然能量",
+      "description": "准备好扩建鼠鼠们的家园了吗？\n至少拥有6只松鼠，至少拥有500自然能量\n奖励：扩大空间，1200自然能量，200果实",
       "conditions": [
         {
           "conditionType": 3,
@@ -130,7 +130,7 @@
         },
         {
           "rewardType": 1,
-          "amount": 750
+          "amount": 1200
         },
         {
           "rewardType": 3,
@@ -141,7 +141,7 @@
     {
       "id": 7,
       "taskName": "扩大规模",
-      "description": "鼠鼠们创造了更高效的生产设备，让我们变得更快更强吧！\n拥有1个联合自然能量产生室、2个标准养分分析室、任意1个大型农业生产建筑",
+      "description": "鼠鼠们创造了更高效的生产设备，让我们变得更快更强吧！\n拥有1个联合自然能量产生室、2个标准养分分析室、任意1个大型农业生产建筑\n奖励：600自然能量，300果实，300养分",
       "conditions": [
         {
           "conditionType": 1,
@@ -165,22 +165,22 @@
       "rewards": [
         {
           "rewardType": 1,
-          "amount": 300
+          "amount": 600
         },
         {
           "rewardType": 2,
-          "amount": 200
+          "amount": 300
         },
         {
           "rewardType": 3,
-          "amount": 200
+          "amount": 300
         }
       ]
     },
     {
       "id": 8,
       "taskName": "大树升级2",
-      "description": "前面的区域，鼠鼠们现在就要探索\n至少拥有10只松鼠，至少拥有750自然能量",
+      "description": "前面的区域，鼠鼠们现在就要探索\n至少拥有10只松鼠，至少拥有750自然能量\n奖励：扩大空间，500自然能量",
       "conditions": [
         {
           "conditionType": 3,
@@ -209,7 +209,7 @@
     {
       "id": 9,
       "taskName": "鼠鼠提升",
-      "description": "吃饱喝足，鼠鼠们想要提升自己\n拥有1个鼠鼠健身房、1个鼠鼠妙妙屋、1个鼠鼠图书馆",
+      "description": "吃饱喝足，鼠鼠们想要提升自己\n拥有1个鼠鼠健身房、1个鼠鼠妙妙屋、1个鼠鼠图书馆\n奖励：300自然能量，200果实，200养分",
       "conditions": [
         {
           "conditionType": 1,
@@ -248,7 +248,7 @@
     {
       "id": 10,
       "taskName": "大树升级3",
-      "description": "养分重组，扩建走你~\n至少拥有500养分",
+      "description": "养分重组，扩建走你~\n至少拥有500养分\n奖励：扩大空间，300自然能量，200果实，200养分",
       "conditions": [
         {
           "conditionType": 4,
@@ -263,6 +263,14 @@
           "amount": 3
         },
         {
+          "rewardType": 1,
+          "amount": 300
+        },
+        {
+          "rewardType": 2,
+          "amount": 200
+        },
+        {
           "rewardType": 3,
           "amount": 200
         }
@@ -271,7 +279,7 @@
     {
       "id": 11,
       "taskName": "试试核桃？",
-      "description": "谁不喜欢新奇的小玩意儿？\n建造1个核桃结果仓",
+      "description": "谁不喜欢新奇的小玩意儿？\n建造1个核桃结果仓\n奖励：100自然能量",
       "conditions": [
         {
           "conditionType": 1,
@@ -290,7 +298,26 @@
     {
       "id": 12,
       "taskName": "鼠鼠厨房",
-      "description": "高端的食材往往只需要朴素的烹饪方式......\n建造1个鼠鼠厨房",
+      "description": "高端的食材往往只需要朴素的烹饪方式......\n建造1个鼠鼠厨房\n奖励：100自然能量",
+      "conditions": [
+        {
+          "conditionType": 1,
+          "key": "101",
+          "keyGroup": [],
+          "targetValue": 1
+        }
+      ],
+      "rewards": [
+        {
+          "rewardType": 1,
+          "amount": 100
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "taskName": "鼠鼠面试",
+      "description": "鼠鼠们入职也要经受拷打\n建造1个松鼠HR面试间\n奖励：100自然能量",
       "conditions": [
         {
           "conditionType": 1,
@@ -307,9 +334,9 @@
       ]
     },
     {
-      "id": 13,
+      "id": 14,
       "taskName": "天赋异禀",
-      "description": "有点天赋就......？\n拥有一只耐力或魔力或智力>=7的松鼠",
+      "description": "有点天赋就......？\n拥有一只耐力或魔力或智力>=7的松鼠\n奖励：100自然能量",
       "conditions": [
         {
           "conditionType": 6,
@@ -326,9 +353,9 @@
       ]
     },
     {
-      "id": 14,
+      "id": 15,
       "taskName": "初见珍藏",
-      "description": "我说收藏核桃是对的\n至少拥有一个收藏品核桃",
+      "description": "我说收藏核桃是对的\n至少拥有一个收藏品核桃\n奖励：100自然能量",
       "conditions": [
         {
           "conditionType": 8,
@@ -345,9 +372,9 @@
       ]
     },
     {
-      "id": 15,
+      "id": 16,
       "taskName": "能量充盈",
-      "description": "鼠很有自然power\n累计获得2500自然能量",
+      "description": "鼠很有自然power\n累计获得2500自然能量\n奖励：100自然能量",
       "conditions": [
         {
           "conditionType": 5,
@@ -364,9 +391,9 @@
       ]
     },
     {
-      "id": 16,
+      "id": 17,
       "taskName": "养分充足",
-      "description": "这个养分是肥料吗\n累计获得2000养分",
+      "description": "这个养分是肥料吗\n累计获得2000养分\n奖励：100自然能量",
       "conditions": [
         {
           "conditionType": 5,
@@ -383,9 +410,9 @@
       ]
     },
     {
-      "id": 17,
+      "id": 18,
       "taskName": "小有收成",
-      "description": "等下，吃不完了\n累计获得1000果实",
+      "description": "等下，吃不完了\n累计获得1000果实\n奖励：100自然能量",
       "conditions": [
         {
           "conditionType": 5,
@@ -402,9 +429,9 @@
       ]
     },
     {
-      "id": 18,
+      "id": 19,
       "taskName": "大树升级4",
-      "description": "还有成长的空间！\n至少拥有800养分",
+      "description": "还有成长的空间！\n至少拥有800养分\n奖励：100自然能量",
       "conditions": [
         {
           "conditionType": 4,
@@ -425,9 +452,9 @@
       ]
     },
     {
-      "id": 19,
+      "id": 20,
       "taskName": "小收集家",
-      "description": "你是我的了！\n获得三种收藏品核桃",
+      "description": "你是我的了！\n获得三种收藏品核桃\n奖励：100自然能量",
       "conditions": [
         {
           "conditionType": 9,
@@ -444,9 +471,9 @@
       ]
     },
     {
-      "id": 20,
-      "taskName": "咔咔！鼠鼠的力量无人能及！\n举世无双",
-      "description": "拥有一只耐力或魔力或智力=10的松鼠",
+      "id": 21,
+      "taskName": "举世无双",
+      "description": "吱吱！鼠鼠的力量无人能及！\n拥有一只耐力或魔力或智力=10的松鼠\n奖励：100自然能量",
       "conditions": [
         {
           "conditionType": 7,
@@ -463,9 +490,9 @@
       ]
     },
     {
-      "id": 21,
+      "id": 22,
       "taskName": "圆满收藏",
-      "description": "不是哥们你运气好好\n拥有所有种类的收藏品核桃",
+      "description": "不是哥们你运气好好\n拥有所有种类的收藏品核桃\n奖励：100自然能量",
       "conditions": [
         {
           "conditionType": 9,

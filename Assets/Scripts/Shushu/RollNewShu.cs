@@ -25,8 +25,8 @@ public class RollNewShu : MonoBehaviour
         "鼠柯克", "鼠条", "鼠片", "鼠塔", "鼠格", "鼠饼", "鼠重八", "鼠谷和人", "鼠大林", "鼠利奈绪",
         "鼠城明日奈", "鼠莱因", "鼠迪乌斯", "鼠琪希", "鼠丽丝", "鼠露菲", "鼠条悟", "鼠艺菡", "鼠曼巴", "鼠拉给木",
         "鼠鼠侠", "鼠川祥子", "鼠早爱音", "鼠松灯", "鼠理员", "鼠行者", "鼠标", "鼠崎爽世", "鼠名立希", "鼠宫妃那",
-        "鼠瑟夫", "鼠斯拿", "鼠芹仁菜", "鼠方仗助", "鼠陈露", "鼠嘉豪", "鼠耽任", "鼠贝林", "鼠笑川", "鼠角洲",
-        "鼠一萱", "鼠旻钰","鼠喵喵","鼠杰瑞","鼠米奇"
+        "鼠瑟夫", "鼠巴拿", "鼠芹仁菜", "鼠方仗助", "鼠陈露", "鼠嘉豪", "鼠耽任", "鼠贝林", "鼠笑川", "鼠角洲",
+        "鼠一萱", "鼠旻钰","鼠喵喵","鼠杰瑞","鼠米奇","鼠破轮"
     };
 
     public Sprite lastGeneratedPhoto;
@@ -60,7 +60,7 @@ public class RollNewShu : MonoBehaviour
         ClampBaseStats(newShu);
 
         // 6) 食量计算：基础10 + buff食量改动
-        ApplyFoodIntake(newShu, 10);
+        ApplyFoodIntake(newShu, Random.Range(8, 12));
 
         return newShu;
     }
@@ -251,7 +251,11 @@ public class RollNewShu : MonoBehaviour
             suffix++;
             fallbackName = "鼠无名" + suffix;
         }
-
+        if(fallbackName==string.Empty)
+        {
+            suffix++;
+            fallbackName = "鼠无名" + suffix;
+        }
         return fallbackName;
     }
 

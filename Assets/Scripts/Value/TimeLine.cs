@@ -3,6 +3,10 @@ using UnityEngine;
 
 public class TimeLine : MonoBehaviour
 {
+    private const string RefreshPersistentControlText = "__刷新长期跳字__";
+    private const string StartLearningText = "开始学习";
+    private const float GrowthStudyDuration = 50f;
+
     public float dayDuration = 150.5f;
     public int totalDays = 10;
     public BuilidingPool buildingPool;
@@ -15,6 +19,7 @@ public class TimeLine : MonoBehaviour
     private float gameSeconds;
     public EatFood eatFood;
     public WallNutManager wallNutManager;
+    public ShuDevelop shuDevelop;
 
     public GameObject dayBackGround;
     public Sprite daySprite;
@@ -23,6 +28,11 @@ public class TimeLine : MonoBehaviour
 
     private void Start()
     {
+        if (shuDevelop == null)
+        {
+            shuDevelop = FindObjectOfType<ShuDevelop>();
+        }
+
         UpdateDayBackgroundByTime();
     }
 
@@ -111,8 +121,15 @@ public class TimeLine : MonoBehaviour
             Room room = baseData.roomList[i];
             if (room == null || string.IsNullOrEmpty(room.instanceId)) continue;
 
+            if (room.isProductionPaused) continue;
             if (!room.isProducing) continue;
             if (gameSeconds < room.finishAtSecond) continue;
+
+            if (IsGrowthRoom(room))
+            {
+                ResolveGrowthRoomProduction(baseData, room);
+                continue;
+            }
 
             Building building = GetBuilding(room);
             if (building != null)
@@ -130,6 +147,7 @@ public class TimeLine : MonoBehaviour
             }
 
             room.isProducing = false;
+            SetRoomWorkersWorkingState(baseData, room, false);
         }
     }
 
@@ -143,7 +161,14 @@ public class TimeLine : MonoBehaviour
             Room room = baseData.roomList[i];
             if (room == null || string.IsNullOrEmpty(room.instanceId)) continue;
 
+            if (room.isProductionPaused) continue;
             if (room.isProducing) continue;
+
+            if (IsGrowthRoom(room))
+            {
+                TryStartGrowthRoomProduction(baseData, room, remainingToday);
+                continue;
+            }
 
             Building building = GetBuilding(room);
             if (building == null || building.timeToProduce <= 0f) continue;
@@ -176,6 +201,7 @@ public class TimeLine : MonoBehaviour
             Consume(baseData, building);
             room.isProducing = true;
             room.finishAtSecond = gameSeconds + building.timeToProduce;
+            SetRoomWorkersWorkingState(baseData, room, true);
             if (HasInputConsume(building))
             {
                 EnqueueTiaoZi(room, "投料");
@@ -183,6 +209,102 @@ public class TimeLine : MonoBehaviour
             else EnqueueTiaoZi(room, "不需要耗材的虚空投料");
         }
     }
+
+    #region 成长房间逻辑
+    // 判断房间是否为成长类房间（601/602/603）。
+    private bool IsGrowthRoom(Room room)
+    {
+        if (room == null || string.IsNullOrEmpty(room.buildingId))
+        {
+            return false;
+        }
+
+        if (shuDevelop != null)
+        {
+            return shuDevelop.IsGrowthRoom(room.buildingId);
+        }
+
+        return room.buildingId == "601" || room.buildingId == "602" || room.buildingId == "603";
+    }
+
+    // 尝试启动成长房间学习流程（每50秒一轮，不消耗投料）。
+    private void TryStartGrowthRoomProduction(BaseData baseData, Room room, float remainingToday)
+    {
+        if (baseData == null || room == null)
+        {
+            return;
+        }
+
+        if (!HasAnyAssignedShushu(baseData, room))
+        {
+            EnqueuePersistentTiaoZi(room, "等待分配");
+            return;
+        }
+
+        if (HasHungryWorker(baseData, room))
+        {
+            EnqueuePersistentTiaoZi(room, "罢工");
+            return;
+        }
+
+        if (remainingToday < GrowthStudyDuration)
+        {
+            EnqueueTiaoZi(room, "剩余时间不足以生产");
+            return;
+        }
+
+        room.isProducing = true;
+        room.finishAtSecond = gameSeconds + GrowthStudyDuration;
+        SetRoomWorkersWorkingState(baseData, room, true);
+        EnqueueTiaoZi(room, StartLearningText);
+    }
+
+    // 结算成长房间学习结果：每只鼠鼠进行一次判定并跳字反馈。
+    private void ResolveGrowthRoomProduction(BaseData baseData, Room room)
+    {
+        if (baseData == null || room == null || room.shushuIds == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < room.shushuIds.Count; i++)
+        {
+            Shushu shu = FindShushuById(baseData, room.shushuIds[i]);
+            if (shu == null)
+            {
+                continue;
+            }
+
+            string resultText = shuDevelop != null
+                ? shuDevelop.ApplyDevelopResult(room.buildingId, shu)
+                : "学习失败";
+
+            EnqueueTiaoZi(room, resultText);
+        }
+
+        room.isProducing = false;
+        SetRoomWorkersWorkingState(baseData, room, false);
+    }
+
+    // 判断当前房间是否至少分配了一只有效鼠鼠。
+    private bool HasAnyAssignedShushu(BaseData baseData, Room room)
+    {
+        if (baseData == null || room == null || room.shushuIds == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < room.shushuIds.Count; i++)
+        {
+            if (FindShushuById(baseData, room.shushuIds[i]) != null)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+    #endregion
 
     // 根据 room 的 buildingId 读取建筑配置。
     private Building GetBuilding(Room room)
@@ -193,6 +315,72 @@ public class TimeLine : MonoBehaviour
         if (!int.TryParse(room.buildingId, out id)) return null;
         return buildingPool.GetBuildingById(id);
     }
+
+    #region 生产暂停控制
+    // 暂停指定房间生产：若当前已投料在生产中，则先吐出投料并中断本轮生产。
+    public void PauseRoomProduction(Room room)
+    {
+        if (room == null)
+        {
+            return;
+        }
+
+        if (room.isProducing)
+        {
+            RefundConsumeForRunningRoom(room);
+            room.isProducing = false;
+            room.finishAtSecond = 0f;
+        }
+
+        room.isProductionPaused = true;
+        SetRoomWorkersWorkingState(BaseData.instance, room, false);
+    }
+
+    // 恢复指定房间生产：解除暂停，并触发一次长期跳字刷新。
+    public void ResumeRoomProduction(Room room)
+    {
+        if (room == null)
+        {
+            return;
+        }
+
+        room.isProductionPaused = false;
+        EnqueueTiaoZi(room, RefreshPersistentControlText);
+    }
+
+    // 对“已投料且正在生产”的房间执行退料返还。
+    private void RefundConsumeForRunningRoom(Room room)
+    {
+        BaseData baseData = BaseData.instance;
+        Building building = GetBuilding(room);
+        if (baseData == null || building == null)
+        {
+            return;
+        }
+
+        baseData.natureEnergy += building.magicConsume;
+        baseData.rootEnergy += building.nutrientConsume;
+        baseData.fruitEnergy += building.fruitConsume;
+    }
+
+    // 设置房间内所有已分配鼠鼠的工作状态。
+    private void SetRoomWorkersWorkingState(BaseData baseData, Room room, bool isWorking)
+    {
+        if (baseData == null || room == null || room.shushuIds == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < room.shushuIds.Count; i++)
+        {
+            Shushu shu = FindShushuById(baseData, room.shushuIds[i]);
+            if (shu != null)
+            {
+                shu.isWorking = isWorking;
+            }
+        }
+    }
+    #endregion
 
     // 在建筑产出后尝试触发核桃掉落，并写入跳字反馈。
     private void TryResolveWallNutDrop(BaseData baseData, Room room)

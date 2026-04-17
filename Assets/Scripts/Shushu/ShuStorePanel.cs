@@ -277,13 +277,43 @@ public class ShuStorePanel : MonoBehaviour
             buffText = "无";
         }
 
+        string workLocationText = GetWorkLocationText(shu);
+
         ShushuText.text = "姓名：" + shu.Name +
                          "\n体力：" + shu.endurance +
                          "\n智力：" + shu.intelligence +
                          "\n法力：" + shu.magicPower +
                          "\n食量：" + shu.foodIntake +
-                         "\n词条：\n" + buffText;
+                         "\n词条：\n" + buffText+
+                         "\n工作地点：" + workLocationText;
     }
+
+    #region 工作地点显示
+    // 获取鼠鼠当前工作地点文本；未分配工作时返回“待分配”。
+    private string GetWorkLocationText(Shushu shu)
+    {
+        if (shu == null || BaseData.instance == null)
+        {
+            return "待分配";
+        }
+
+        if (string.IsNullOrEmpty(shu.Id))
+        {
+            return "待分配";
+        }
+
+        Room room = BaseData.instance.GetWorkRoomByShushuId(shu.Id);
+        if (room == null)
+        {
+            return "待分配";
+        }
+
+        string buildingId = string.IsNullOrEmpty(room.buildingId) ? "未知" : room.buildingId;
+        string instanceId = string.IsNullOrEmpty(room.instanceId) ? "未知" : room.instanceId;
+        return "建筑ID:" + buildingId + " 实例ID:" + instanceId;
+    }
+    #endregion
+
     // 计算总页数，至少保留1页用于展示空槽位
     private int GetTotalPages(int totalCount)
     {

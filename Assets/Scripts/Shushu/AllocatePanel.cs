@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
 
 public class AllocatePanel : MonoBehaviour
 {
@@ -48,6 +47,7 @@ public class AllocatePanel : MonoBehaviour
     public BuilidingPool buildingPool;
     public BuildingPanelWiget buildingPanelWiget;
     public BPDestory bpDestory;
+    public StopBuildingUI stopBuildingUI;
 
     // 初始化面板状态和关闭按钮事件
     private void Start()
@@ -66,11 +66,11 @@ public class AllocatePanel : MonoBehaviour
     {
         if (cellManager == null) return;
         if (IsInBuildOrDestroyMode()) return;
-        if (IsPointerOverUI()) return;
+        if (MouseToCell.IsPointerOverUI()) return;
         if (!Input.GetMouseButtonDown(0)) return;
 
         Vector2Int cellPos;
-        if (!TryGetMouseCell(out cellPos)) return;
+        if (!MouseToCell.TryGetMouseCell(cellManager, mainCamera, out cellPos)) return;
 
         Cell cell = cellManager.GetCell(cellPos.x, cellPos.y);
         if (cell == null || cell.state != 2) return;
@@ -110,6 +110,11 @@ public class AllocatePanel : MonoBehaviour
             Panel.SetActive(false);
         }
 
+        if (stopBuildingUI != null)
+        {
+            stopBuildingUI.BindRoom(null);
+        }
+
         lastSelectedShuId = string.Empty;
     }
 
@@ -125,10 +130,15 @@ public class AllocatePanel : MonoBehaviour
         currentInstanceId = cell.buildingInstanceId.ToString();
         int buildingId = int.Parse(cell.buildingTag);
         currentBuilding = buildingPool.GetBuildingById(buildingId);
-        currentWorkersToRun = currentBuilding.workersToRun;
+        currentWorkersToRun = GetCurrentRoomCapacity(currentBuilding);
         currentRoom = GetOrCreateCurrentRoom();
         currentPage = 0;
         lastSelectedShuId = string.Empty;
+
+        if (stopBuildingUI != null)
+        {
+            stopBuildingUI.BindRoom(currentRoom);
+        }
 
         BuildingText.text = currentBuilding.text;
         ShushuText.text = "点击鼠鼠头像可查看信息，再次点击可分配/取消分配";
@@ -244,6 +254,7 @@ public class AllocatePanel : MonoBehaviour
         {
             Shushu shu = i < downList.Count ? downList[i] : null;
             UpdateDownSlot(i, shu);
+            UpdateDownSlotButtonState(i);
         }
 
         int totalPages = Mathf.Max(1, Mathf.CeilToInt(upList.Count / (float)PageSize));
@@ -307,6 +318,17 @@ public class AllocatePanel : MonoBehaviour
 
         if (IsSecondClick(false, shu.Id))
         {
+            if (shu.isWorking)
+            {
+                if (ShushuText != null)
+                {
+                    ShushuText.text = "该鼠鼠正在工作中，无法移出岗位";
+                }
+
+                lastSelectedShuId = string.Empty;
+                return;
+            }
+
             UnassignShushuFromCurrentRoom(shu);
             lastSelectedShuId = string.Empty;
             RefreshPage();
@@ -547,6 +569,42 @@ public class AllocatePanel : MonoBehaviour
         return true;
     }
 
+    // 获取当前建筑可分配容量：成长房间使用面板槽位容量，其它建筑使用workersToRun。
+    private int GetCurrentRoomCapacity(Building building)
+    {
+        if (building == null)
+        {
+            return 0;
+        }
+
+        if (IsGrowthBuildingId(building.id.ToString()))
+        {
+            return 1;
+        }
+
+        return Mathf.Max(0, building.workersToRun);
+    }
+
+    // 判断是否为成长类房间（601/602/603）。
+    private bool IsGrowthBuildingId(string buildingId)
+    {
+        return buildingId == "601" || buildingId == "602" || buildingId == "603";
+    }
+
+    // 根据当前容量控制下方槽位按钮：超出容量的槽位不可交互。
+    private void UpdateDownSlotButtonState(int index)
+    {
+        if (DownphotoButtons == null || index < 0 || index >= DownphotoButtons.Length)
+        {
+            return;
+        }
+
+        if (DownphotoButtons[index] != null)
+        {
+            DownphotoButtons[index].interactable = index < currentWorkersToRun;
+        }
+    }
+
     // 判断鼠鼠是否拥有指定buff。
     private bool HasBuff(Shushu shu, int buffId)
     {
@@ -679,69 +737,7 @@ public class AllocatePanel : MonoBehaviour
     }
     #endregion
 
-
     #region 解析cell
-    // 尝试把当前鼠标位置解析成格子坐标
-    private bool TryGetMouseCell(out Vector2Int cellPos)
-    {
-        Camera cam = mainCamera != null ? mainCamera : Camera.main;
-        if (cam == null)
-        {
-            cellPos = Vector2Int.zero;
-            return false;
-        }
-
-        Ray ray = cam.ScreenPointToRay(Input.mousePosition);
-        RaycastHit hit;
-        if (Physics.Raycast(ray, out hit, 1000f))
-        {
-            Vector2Int hitCell;
-            if (TryParseCellFromName(hit.transform.name, out hitCell))
-            {
-                cellPos = hitCell;
-                return cellManager.IsValid(cellPos.x, cellPos.y);
-            }
-        }
-
-        Plane gridPlane = new Plane(Vector3.forward, new Vector3(0f, 0f, cellManager.transform.position.z));
-        float enter;
-        if (!gridPlane.Raycast(ray, out enter))
-        {
-            cellPos = Vector2Int.zero;
-            return false;
-        }
-
-        Vector3 world = ray.GetPoint(enter);
-        int x = Mathf.FloorToInt((world.x - cellManager.origin.x) / cellManager.cellSize.x + 0.5f);
-        int y = Mathf.FloorToInt((world.y - cellManager.origin.y) / cellManager.cellSize.y + 0.5f);
-        cellPos = new Vector2Int(x, y);
-        return cellManager.IsValid(x, y);
-    }
-
-    // 从 Cell_x_y 解析格子坐标
-    private bool TryParseCellFromName(string objectName, out Vector2Int cellPos)
-    {
-        cellPos = Vector2Int.zero;
-        if (string.IsNullOrEmpty(objectName) || !objectName.StartsWith("Cell_")) return false;
-
-        string[] parts = objectName.Split('_');
-        if (parts.Length != 3) return false;
-
-        int x;
-        int y;
-        if (!int.TryParse(parts[1], out x) || !int.TryParse(parts[2], out y)) return false;
-
-        cellPos = new Vector2Int(x, y);
-        return true;
-    }
-
-    // 避免点击穿透 UI
-    private bool IsPointerOverUI()
-    {
-        return EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
-    }
-
-
     // 当处于建造模式或拆除模式时，不响应分配面板弹出。
     private bool IsInBuildOrDestroyMode()
     {
