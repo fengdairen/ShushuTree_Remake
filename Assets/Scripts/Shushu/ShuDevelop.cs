@@ -7,25 +7,25 @@ public class ShuDevelop : MonoBehaviour
     /*
     标准逻辑：
     601房间逻辑：
-    5%耐力+2，25%耐力+1，70%无
+    10%耐力+2，40%耐力+1，50%无
     602房间逻辑：
-    1%智力+2，4%智力+1，4%魔力+2，16%魔力+1，75%无
+    5%智力+2，20%智力+1，5%魔力+2，20%魔力+1，50%无
     603房间逻辑：
-    5%魔力+2，25%魔力+1，70%无
+    10%魔力+2，40%魔力+1，50%无
 
     加强逻辑
-    601：10%耐力+2，50%耐力+1，40%无
-    602：2%智力+2，8%智力+1，8%魔力+2，32%魔力+1，50%无
-    603：10%魔力+2，50%魔力+1，40%无
+    601：25%耐力+2，50%耐力+1，25%无
+    602：7.5%智力+2，30%智力+1，7.5%魔力+2，30%魔力+1，25%无
+    603：25%魔力+2，50%魔力+1，25%无
 
     弱化逻辑
-    601：2.5%耐力+2，12.5%耐力+1，85%无
-    602：0.5%智力+2，2%智力+1，4%魔力+2，16%魔力+1，77.5%无
-    603：2.5%魔力+2，12.5%魔力+1，85%无
+    601：5%耐力+2，20%耐力+1，75%无
+    602：2.5%智力+2，10%智力+1，2.5%魔力+2，10%魔力+1，75%无
+    603：5%魔力+2，20%魔力+1，75%无
 
     特化逻辑：
     601：不做特化
-    602：1%智力+2，4%智力+1，95%无
+    602：5%智力+2，20%智力+1，75%无
     603：100%无
 
     如果有buff7
@@ -44,7 +44,6 @@ public class ShuDevelop : MonoBehaviour
     如果有buff19
     603逻辑加强
 
-    如果有
      */
 
     private const string LearnGreatSuccessText = "学习大成功";
@@ -164,15 +163,15 @@ public class ShuDevelop : MonoBehaviour
     {
         if (logicType == DevelopLogicType.Enhanced)
         {
-            return RollSingleStat(shu, "endurance", 10f, 50f);
+            return RollSingleStat(shu, "endurance", 25f, 50f);
         }
 
         if (logicType == DevelopLogicType.Weakened)
         {
-            return RollSingleStat(shu, "endurance", 2.5f, 12.5f);
+            return RollSingleStat(shu, "endurance", 5f, 20f);
         }
 
-        return RollSingleStat(shu, "endurance", 5f, 25f);
+        return RollSingleStat(shu, "endurance", 10f, 40f);
     }
 
     // 602：按标准/加强/弱化/特化逻辑结算。
@@ -180,20 +179,20 @@ public class ShuDevelop : MonoBehaviour
     {
         if (logicType == DevelopLogicType.Specialized)
         {
-            return RollDualStat(shu, 1f, 4f, 0f, 0f);
+            return RollDualStat(shu, 5f, 20f, 0f, 0f);
         }
 
         if (logicType == DevelopLogicType.Enhanced)
         {
-            return RollDualStat(shu, 2f, 8f, 8f, 32f);
+            return RollDualStat(shu, 7.5f, 30f, 7.5f, 30f);
         }
 
         if (logicType == DevelopLogicType.Weakened)
         {
-            return RollDualStat(shu, 0.5f, 2f, 4f, 16f);
+            return RollDualStat(shu, 2.5f, 10f, 2.5f, 10f);
         }
 
-        return RollDualStat(shu, 1f, 4f, 4f, 16f);
+        return RollDualStat(shu, 5f, 20f, 5f, 20f);
     }
 
     // 603：按标准/加强/弱化/特化逻辑结算。
@@ -206,15 +205,15 @@ public class ShuDevelop : MonoBehaviour
 
         if (logicType == DevelopLogicType.Enhanced)
         {
-            return RollSingleStat(shu, "magicPower", 10f, 50f);
+            return RollSingleStat(shu, "magicPower", 25f, 50f);
         }
 
         if (logicType == DevelopLogicType.Weakened)
         {
-            return RollSingleStat(shu, "magicPower", 2.5f, 12.5f);
+            return RollSingleStat(shu, "magicPower", 5f, 20f);
         }
 
-        return RollSingleStat(shu, "magicPower", 5f, 25f);
+        return RollSingleStat(shu, "magicPower", 10f, 40f);
     }
 
     // 执行单属性成长检验：greatRate为+2概率，successRate为+1概率。
@@ -283,18 +282,61 @@ public class ShuDevelop : MonoBehaviour
         if (statKey == "endurance")
         {
             shu.endurance = Mathf.Clamp(shu.endurance + addValue, 1, 10);
+            WriteBackStatsToBaseData(shu);
             return;
         }
 
         if (statKey == "intelligence")
         {
             shu.intelligence = Mathf.Clamp(shu.intelligence + addValue, 1, 10);
+            WriteBackStatsToBaseData(shu);
             return;
         }
 
         if (statKey == "magicPower")
         {
             shu.magicPower = Mathf.Clamp(shu.magicPower + addValue, 1, 10);
+            WriteBackStatsToBaseData(shu);
+            return;
+        }
+
+        WriteBackStatsToBaseData(shu);
+    }
+
+    // 将三维变化回写到BaseData，避免引用链变化时数值未落盘。
+    private void WriteBackStatsToBaseData(Shushu shu)
+    {
+        BaseData data = BaseData.instance;
+        if (shu == null || data == null || data.shushuList == null)
+        {
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(shu.Id))
+        {
+            for (int i = 0; i < data.shushuList.Count; i++)
+            {
+                Shushu item = data.shushuList[i];
+                if (item != null && item.Id == shu.Id)
+                {
+                    item.endurance = shu.endurance;
+                    item.intelligence = shu.intelligence;
+                    item.magicPower = shu.magicPower;
+                    return;
+                }
+            }
+        }
+
+        for (int i = 0; i < data.shushuList.Count; i++)
+        {
+            Shushu item = data.shushuList[i];
+            if (ReferenceEquals(item, shu))
+            {
+                item.endurance = shu.endurance;
+                item.intelligence = shu.intelligence;
+                item.magicPower = shu.magicPower;
+                return;
+            }
         }
     }
     #endregion

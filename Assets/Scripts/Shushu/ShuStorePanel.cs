@@ -20,6 +20,7 @@ public class ShuStorePanel : MonoBehaviour
     private Image[] photoImages;
     private Button[] photoButtons;
 
+    public BuilidingPool buildingPool;   
 
 
     void Start()
@@ -308,9 +309,30 @@ public class ShuStorePanel : MonoBehaviour
             return "待分配";
         }
 
-        string buildingId = string.IsNullOrEmpty(room.buildingId) ? "未知" : room.buildingId;
-        string instanceId = string.IsNullOrEmpty(room.instanceId) ? "未知" : room.instanceId;
-        return "建筑ID:" + buildingId + " 实例ID:" + instanceId;
+        string buildingId = string.IsNullOrEmpty(room.buildingId) ? string.Empty : room.buildingId;
+        if (string.IsNullOrEmpty(buildingId))
+        {
+            return "未知建筑";
+        }
+
+        if (buildingPool == null)
+        {
+            return "未知建筑";
+        }
+
+        int id;
+        if (!int.TryParse(buildingId, out id))
+        {
+            return "未知建筑";
+        }
+
+        Building building = buildingPool.GetBuildingById(id);
+        if (building == null || string.IsNullOrEmpty(building.Name))
+        {
+            return "未知建筑";
+        }
+
+        return building.Name;
     }
     #endregion
 
