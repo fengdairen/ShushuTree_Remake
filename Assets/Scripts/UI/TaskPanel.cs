@@ -12,12 +12,14 @@ public class TaskPanel : MonoBehaviour
     public Text taskName;
     public Text taskText;
     public TaskManager taskManager;
+    private UIManager uiManager;
 
     #region 生命周期
 
     // 初始化按钮监听与面板默认状态。
     private void Start()
     {
+        EnsureUIManager();
         if (taskManager == null)
         {
             taskManager = FindObjectOfType<TaskManager>();
@@ -74,9 +76,10 @@ public class TaskPanel : MonoBehaviour
     // 打开任务面板，并在打开时刷新一次任务完成状态。
     public void OpenPanel()
     {
-        if (thePanel != null)
+        EnsureUIManager();
+        if (uiManager != null)
         {
-            thePanel.SetActive(true);
+            uiManager.OpenPanel(thePanel);
         }
 
         if (taskManager != null)
@@ -90,9 +93,10 @@ public class TaskPanel : MonoBehaviour
     // 关闭任务面板。
     public void ClosePanel()
     {
-        if (thePanel != null)
+        EnsureUIManager();
+        if (uiManager != null)
         {
-            thePanel.SetActive(false);
+            uiManager.ClosePanel(thePanel);
         }
     }
 
@@ -165,6 +169,17 @@ public class TaskPanel : MonoBehaviour
         receiveButton.gameObject.SetActive(isVisible);
     }
 
+    #endregion
+
+    #region UI管理器
+    // 获取UIManager实例。
+    private void EnsureUIManager()
+    {
+        if (uiManager == null)
+        {
+            uiManager = UIManager.Instance != null ? UIManager.Instance : FindObjectOfType<UIManager>();
+        }
+    }
     #endregion
 
 }

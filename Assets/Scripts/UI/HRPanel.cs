@@ -22,12 +22,15 @@ public class HRPanel : MonoBehaviour
 
     private const int RollCost = 50;
     private Shushu pendingShu;
+    private UIManager uiManager;
 
+    #region 生命周期
     // 初始化按钮事件与界面状态
     private void Start()
     {
+        EnsureUIManager();
         BindButtonEvents();
-        SetPanelActive(false);
+        ClosePanel();
         ClearCurrentCandidate();
     }
 
@@ -59,7 +62,9 @@ public class HRPanel : MonoBehaviour
             refuseButton.onClick.RemoveListener(RefuseCurrentShu);
         }
     }
+    #endregion
 
+    #region 面板开关
     // 绑定所有按钮事件
     private void BindButtonEvents()
     {
@@ -92,33 +97,47 @@ public class HRPanel : MonoBehaviour
     // 打开招募面板
     private void OpenPanel()
     {
-        SetPanelActive(true);
+        EnsureUIManager();
+        if (uiManager != null)
+        {
+            uiManager.OpenPanel(panel);
+        }
     }
 
     // 关闭招募面板
     private void ClosePanel()
     {
-        SetPanelActive(false);
-    }
-
-    // 控制面板开关
-    private void SetPanelActive(bool isActive)
-    {
-        if (panel != null)
+        EnsureUIManager();
+        if (uiManager != null)
         {
-            panel.SetActive(isActive);
+            uiManager.ClosePanel(panel);
         }
     }
+    #endregion
 
+    #region UI管理器
+    // 获取UIManager实例。
+    private void EnsureUIManager()
+    {
+        if (uiManager == null)
+        {
+            uiManager = UIManager.Instance != null ? UIManager.Instance : FindObjectOfType<UIManager>();
+        }
+    }
+    #endregion
+
+    #region 招募逻辑
     // 点击roll：扣除果实能量并生成一个新的候选鼠鼠
     private void RollOneShu()
     {
-        if (BaseData.instance == null)
+        BaseData data = BaseData.instance;
+        if (data == null)
         {
             return;
         }
 
-        if (BaseData.instance.fruitEnergy < RollCost)
+        int currentFruit = data.GetBlackboardValue(BaseData.BlackboardKeys.FruitEnergy, data.fruitEnergy);
+        if (currentFruit < RollCost)
         {
             ShowMessage("没饭吃了，招不到鼠");
             SetDecisionButtonsEnabled(false);
@@ -126,7 +145,7 @@ public class HRPanel : MonoBehaviour
         }
 
       
-        BaseData.instance.fruitEnergy -= RollCost;
+        data.SetBlackboardValue(BaseData.BlackboardKeys.FruitEnergy, currentFruit - RollCost);
 
         pendingShu = rollNewShu.GenerateRandomShuShu();
         if (pendingShu == null)
@@ -169,23 +188,27 @@ public class HRPanel : MonoBehaviour
     // 接受当前候选鼠鼠并放入仓库
     private void AcceptCurrentShu()
     {
-        if (pendingShu == null || BaseData.instance == null)
+        BaseData data = BaseData.instance;
+        if (pendingShu == null || data == null)
         {
             return;
         }
 
-        if (BaseData.instance.shushuList == null)
+        List<Shushu> shushuList = data.GetBlackboardValue(BaseData.BlackboardKeys.ShushuList, data.shushuList);
+        if (shushuList == null)
         {
-            BaseData.instance.shushuList = new List<Shushu>();
+            shushuList = new List<Shushu>();
+            data.SetBlackboardValue(BaseData.BlackboardKeys.ShushuList, shushuList);
         }
 
-        if (BaseData.instance.shushuList.Count >= BaseData.instance.MaxShuShu)
+        int maxShuShu = data.GetBlackboardValue(BaseData.BlackboardKeys.MaxShuShu, data.MaxShuShu);
+        if (shushuList.Count >= maxShuShu)
         {
             ShowMessage("床位已满，招不了鼠");
             return;
         }
 
-        BaseData.instance.shushuList.Add(pendingShu);
+        shushuList.Add(pendingShu);
         ClearCurrentCandidate();
     }
 
@@ -235,14 +258,13 @@ public class HRPanel : MonoBehaviour
     // 生成简历文本
     private string BuildResumeText(Shushu shu)
     {
-        string buffLine = BuffWord.BuildBuffDisplayText(shu);
-        if (string.IsNullOrEmpty(buffLine))
+        BaseData data = BaseData.instance;
+        if (data == null)
         {
-            buffLine = "无";
+            return string.Empty;
         }
 
-        return "食量：" + shu.foodIntake +
-               "\n词条：\n" + buffLine;
+        return data.GetShushuResumeText(shu);
     }
 
     // 显示一条提示文本
@@ -253,4 +275,5 @@ public class HRPanel : MonoBehaviour
             resumeText.text = message;
         }
     }
+    #endregion
 }

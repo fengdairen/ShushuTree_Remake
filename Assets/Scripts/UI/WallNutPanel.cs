@@ -34,9 +34,13 @@ public class WallNutPanel : MonoBehaviour
         "这真的是该长出来的东西吗？"
     };
 
+    private UIManager uiManager;
+
+    #region 生命周期
     // 初始化按钮事件和面板默认状态。
     private void Start()
     {
+        EnsureUIManager();
         if (openButton != null)
         {
             openButton.onClick.AddListener(OpenPanel);
@@ -50,13 +54,16 @@ public class WallNutPanel : MonoBehaviour
         BindIconButtons();
         ClosePanel();
     }
+    #endregion
 
+    #region 面板开关
     // 打开面板并刷新12个核桃图标状态。
     public void OpenPanel()
     {
-        if (panel != null)
+        EnsureUIManager();
+        if (uiManager != null)
         {
-            panel.SetActive(true);
+            uiManager.OpenPanel(panel);
         }
         nutPhoto.sprite = null;
         nutText.text = "点击核桃查看详情";
@@ -67,11 +74,24 @@ public class WallNutPanel : MonoBehaviour
     // 关闭面板。
     public void ClosePanel()
     {
-        if (panel != null)
+        EnsureUIManager();
+        if (uiManager != null)
         {
-            panel.SetActive(false);
+            uiManager.ClosePanel(panel);
         }
     }
+    #endregion
+
+    #region UI管理器
+    // 获取UIManager实例。
+    private void EnsureUIManager()
+    {
+        if (uiManager == null)
+        {
+            uiManager = UIManager.Instance != null ? UIManager.Instance : FindObjectOfType<UIManager>();
+        }
+    }
+    #endregion
 
     // 给12个icon的Button绑定点击事件。
     private void BindIconButtons()
@@ -134,6 +154,7 @@ public class WallNutPanel : MonoBehaviour
     private void OnClickNut(int id)
     {
         BaseData data = BaseData.instance;
+        int[] wallNutNum = data == null ? null : data.GetBlackboardValue(BaseData.BlackboardKeys.WallNutNum, data.wallNutNum);
         bool owned = HasNut(data, id);
 
         if (nutPhoto != null)
@@ -146,7 +167,8 @@ public class WallNutPanel : MonoBehaviour
             if (owned)
             {
                 int index = id - 1;
-                nutText.text = nutNames[index] + "\n" + nutDescriptions[index]+"\n现有数量：" + data.wallNutNum[index];
+                int count = wallNutNum != null && index >= 0 && index < wallNutNum.Length ? wallNutNum[index] : 0;
+                nutText.text = nutNames[index] + "\n" + nutDescriptions[index] + "\n现有数量：" + count;
             }
             else
             {
@@ -164,18 +186,24 @@ public class WallNutPanel : MonoBehaviour
     // 判断是否拥有指定核桃（id范围1~12）。
     private bool HasNut(BaseData data, int id)
     {
-        if (data == null || data.wallNutNum == null)
+        if (data == null)
+        {
+            return false;
+        }
+
+        int[] wallNutNum = data.GetBlackboardValue(BaseData.BlackboardKeys.WallNutNum, data.wallNutNum);
+        if (wallNutNum == null)
         {
             return false;
         }
 
         int index = id - 1;
-        if (index < 0 || index >= data.wallNutNum.Length)
+        if (index < 0 || index >= wallNutNum.Length)
         {
             return false;
         }
 
-        return data.wallNutNum[index] > 0;
+        return wallNutNum[index] > 0;
     }
 
 

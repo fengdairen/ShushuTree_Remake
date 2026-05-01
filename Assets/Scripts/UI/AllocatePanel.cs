@@ -48,17 +48,17 @@ public class AllocatePanel : MonoBehaviour
     public BuildingPanelWiget buildingPanelWiget;
     public BPDestory bpDestory;
     public StopBuildingUI stopBuildingUI;
+    private UIManager uiManager;
 
+    #region 生命周期
     // 初始化面板状态和关闭按钮事件
     private void Start()
     {
+        EnsureUIManager();
         InitPhotoSlots();
         BindButtonEvents();
 
-        if (Panel != null)
-        {
-            Panel.SetActive(false);
-        }
+        ClosePanel();
     }
 
     // 每帧检测点击建筑格子，打开分配面板并展示建筑信息
@@ -105,9 +105,10 @@ public class AllocatePanel : MonoBehaviour
     // 关闭分配面板
     private void ClosePanel()
     {
-        if (Panel != null)
+        EnsureUIManager();
+        if (uiManager != null)
         {
-            Panel.SetActive(false);
+            uiManager.ClosePanel(Panel);
         }
 
         if (stopBuildingUI != null)
@@ -121,9 +122,10 @@ public class AllocatePanel : MonoBehaviour
     // 打开面板并把当前建筑信息写入 BuildingText
     private void OpenPanelAndShowBuilding(Cell cell)
     {
-        if (Panel != null)
+        EnsureUIManager();
+        if (uiManager != null)
         {
-            Panel.SetActive(true);
+            uiManager.OpenPanel(Panel);
         }
 
         currentBuildingId = cell.buildingTag;
@@ -140,10 +142,23 @@ public class AllocatePanel : MonoBehaviour
             stopBuildingUI.BindRoom(currentRoom);
         }
 
-        BuildingText.text = currentBuilding.text;
+        BuildingText.text = buildingPool != null ? buildingPool.GetBuildingDisplayText(currentBuilding) : currentBuilding.text;
         ShushuText.text = "点击鼠鼠头像可查看信息，再次点击可分配/取消分配";
         RefreshPage();
     }
+
+    #endregion
+
+    #region UI管理器
+    // 获取UIManager实例。
+    private void EnsureUIManager()
+    {
+        if (uiManager == null)
+        {
+            uiManager = UIManager.Instance != null ? UIManager.Instance : FindObjectOfType<UIManager>();
+        }
+    }
+    #endregion
 
 
     #region 页面与点击逻辑
@@ -360,14 +375,16 @@ public class AllocatePanel : MonoBehaviour
             return null;
         }
 
-        if (data.roomList == null)
+        List<Room> roomList = data.GetBlackboardValue(BaseData.BlackboardKeys.RoomList, data.roomList);
+        if (roomList == null)
         {
-            data.roomList = new List<Room>();
+            roomList = new List<Room>();
+            data.SetBlackboardValue(BaseData.BlackboardKeys.RoomList, roomList);
         }
 
-        for (int i = 0; i < data.roomList.Count; i++)
+        for (int i = 0; i < roomList.Count; i++)
         {
-            Room room = data.roomList[i];
+            Room room = roomList[i];
             if (room != null && room.buildingId == currentBuildingId && room.instanceId == currentInstanceId)
             {
                 if (room.shushuIds == null)
@@ -384,7 +401,7 @@ public class AllocatePanel : MonoBehaviour
             instanceId = currentInstanceId,
             shushuIds = new List<string>()
         };
-        data.roomList.Add(newRoom);
+        roomList.Add(newRoom);
         return newRoom;
     }
 
@@ -393,14 +410,20 @@ public class AllocatePanel : MonoBehaviour
     {
         List<Shushu> result = new List<Shushu>();
         BaseData data = BaseData.instance;
-        if (data == null || data.shushuList == null)
+        if (data == null)
         {
             return result;
         }
 
-        for (int i = 0; i < data.shushuList.Count; i++)
+        List<Shushu> shushuList = data.GetBlackboardValue(BaseData.BlackboardKeys.ShushuList, data.shushuList);
+        if (shushuList == null)
         {
-            Shushu shu = data.shushuList[i];
+            return result;
+        }
+
+        for (int i = 0; i < shushuList.Count; i++)
+        {
+            Shushu shu = shushuList[i];
             if (shu == null || shu.haveJob)
             {
                 continue;
@@ -423,7 +446,13 @@ public class AllocatePanel : MonoBehaviour
     {
         List<Shushu> result = new List<Shushu>();
         BaseData data = BaseData.instance;
-        if (data == null || data.shushuList == null || currentRoom == null || currentRoom.shushuIds == null)
+        if (data == null || currentRoom == null || currentRoom.shushuIds == null)
+        {
+            return result;
+        }
+
+        List<Shushu> shushuList = data.GetBlackboardValue(BaseData.BlackboardKeys.ShushuList, data.shushuList);
+        if (shushuList == null)
         {
             return result;
         }
@@ -436,7 +465,7 @@ public class AllocatePanel : MonoBehaviour
                 continue;
             }
 
-            Shushu shu = FindShushuById(id);
+            Shushu shu = FindShushuById(shushuList, id);
             if (shu != null)
             {
                 result.Add(shu);
@@ -517,17 +546,16 @@ public class AllocatePanel : MonoBehaviour
     }
 
     // 通过ID在仓库中查找鼠鼠。
-    private Shushu FindShushuById(string id)
+    private Shushu FindShushuById(List<Shushu> shushuList, string id)
     {
-        BaseData data = BaseData.instance;
-        if (data == null || data.shushuList == null || string.IsNullOrEmpty(id))
+        if (shushuList == null || string.IsNullOrEmpty(id))
         {
             return null;
         }
 
-        for (int i = 0; i < data.shushuList.Count; i++)
+        for (int i = 0; i < shushuList.Count; i++)
         {
-            Shushu shu = data.shushuList[i];
+            Shushu shu = shushuList[i];
             if (shu != null && shu.Id == id)
             {
                 return shu;
@@ -682,19 +710,11 @@ public class AllocatePanel : MonoBehaviour
         {
             return;
         }
-
-        string buffText = BuffWord.BuildBuffDisplayText(shu);
-        if (string.IsNullOrEmpty(buffText))
+        BaseData data = BaseData.instance;
+        if (data != null)
         {
-            buffText = "无";
+            ShushuText.text = data.GetShushuInfoText(shu, false, null);
         }
-
-        ShushuText.text = "姓名：" + shu.Name +
-                         "\n体力：" + shu.endurance +
-                         "\n智力：" + shu.intelligence +
-                         "\n法力：" + shu.magicPower +
-                         "\n食量：" + shu.foodIntake +
-                         "\n词条：\n" + buffText;
     }
 
     // 查找照片槽内用于显示头像的Image。

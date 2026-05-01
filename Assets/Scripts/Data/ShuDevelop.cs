@@ -307,16 +307,22 @@ public class ShuDevelop : MonoBehaviour
     private void WriteBackStatsToBaseData(Shushu shu)
     {
         BaseData data = BaseData.instance;
-        if (shu == null || data == null || data.shushuList == null)
+        if (shu == null || data == null)
+        {
+            return;
+        }
+
+        List<Shushu> shushuList = data.GetBlackboardValue(BaseData.BlackboardKeys.ShushuList, data.shushuList);
+        if (shushuList == null)
         {
             return;
         }
 
         if (!string.IsNullOrEmpty(shu.Id))
         {
-            for (int i = 0; i < data.shushuList.Count; i++)
+            for (int i = 0; i < shushuList.Count; i++)
             {
-                Shushu item = data.shushuList[i];
+                Shushu item = shushuList[i];
                 if (item != null && item.Id == shu.Id)
                 {
                     item.endurance = shu.endurance;
@@ -327,9 +333,9 @@ public class ShuDevelop : MonoBehaviour
             }
         }
 
-        for (int i = 0; i < data.shushuList.Count; i++)
+        for (int i = 0; i < shushuList.Count; i++)
         {
-            Shushu item = data.shushuList[i];
+            Shushu item = shushuList[i];
             if (ReferenceEquals(item, shu))
             {
                 item.endurance = shu.endurance;

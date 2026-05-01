@@ -25,21 +25,25 @@ public class DataPanelWiget : MonoBehaviour
             var bd = BaseData.instance;
             if (bd == null) return;
 
-            if (bd.natureEnergy != prevNature)
+            int natureEnergy = bd.GetBlackboardValue(BaseData.BlackboardKeys.NatureEnergy, bd.natureEnergy);
+            int fruitEnergy = bd.GetBlackboardValue(BaseData.BlackboardKeys.FruitEnergy, bd.fruitEnergy);
+            int rootEnergy = bd.GetBlackboardValue(BaseData.BlackboardKeys.RootEnergy, bd.rootEnergy);
+
+            if (natureEnergy != prevNature)
             {
-                prevNature = bd.natureEnergy;
+                prevNature = natureEnergy;
                 if (natureEnergyText != null) natureEnergyText.text = prevNature.ToString();
             }
 
-            if (bd.fruitEnergy != prevFruit)
+            if (fruitEnergy != prevFruit)
             {
-                prevFruit = bd.fruitEnergy;
+                prevFruit = fruitEnergy;
                 if (fruitEnergyText != null) fruitEnergyText.text = prevFruit.ToString();
             }
 
-            if (bd.rootEnergy != prevRoot)
+            if (rootEnergy != prevRoot)
             {
-                prevRoot = bd.rootEnergy;
+                prevRoot = rootEnergy;
                 if (rootEnergyText != null) rootEnergyText.text = prevRoot.ToString();
             }
         }
@@ -49,9 +53,9 @@ public class DataPanelWiget : MonoBehaviour
         {
             var bd = BaseData.instance;
             if (bd == null) return;
-            prevNature = bd.natureEnergy;
-            prevFruit = bd.fruitEnergy;
-            prevRoot = bd.rootEnergy;
+            prevNature = bd.GetBlackboardValue(BaseData.BlackboardKeys.NatureEnergy, bd.natureEnergy);
+            prevFruit = bd.GetBlackboardValue(BaseData.BlackboardKeys.FruitEnergy, bd.fruitEnergy);
+            prevRoot = bd.GetBlackboardValue(BaseData.BlackboardKeys.RootEnergy, bd.rootEnergy);
 
             if (natureEnergyText != null) natureEnergyText.text = prevNature.ToString();
             if (fruitEnergyText != null) fruitEnergyText.text = prevFruit.ToString();

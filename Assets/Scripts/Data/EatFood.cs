@@ -13,17 +13,23 @@ public class EatFood : MonoBehaviour
     public void ProcessDailyEat()
     {
         BaseData data = GetBaseData();
-        if (data == null || data.shushuList == null)
+        if (data == null)
         {
             return;
         }
 
-        int originalFoodEnergy = Mathf.Max(0, data.fruitEnergy);
+        List<Shushu> shushuList = data.GetBlackboardValue(BaseData.BlackboardKeys.ShushuList, data.shushuList);
+        if (shushuList == null)
+        {
+            return;
+        }
+
+        int originalFoodEnergy = Mathf.Max(0, data.GetBlackboardValue(BaseData.BlackboardKeys.FruitEnergy, data.fruitEnergy));
         int remainFoodEnergy = originalFoodEnergy + GetFoodReductionBonus(data);
 
-        for (int i = 0; i < data.shushuList.Count; i++)
+        for (int i = 0; i < shushuList.Count; i++)
         {
-            Shushu shushu = data.shushuList[i];
+            Shushu shushu = shushuList[i];
             if (shushu == null)
             {
                 continue;
@@ -41,16 +47,23 @@ public class EatFood : MonoBehaviour
             }
         }
 
-        data.fruitEnergy = Mathf.Max(0, Mathf.Min(originalFoodEnergy, remainFoodEnergy));
+        int finalFoodEnergy = Mathf.Max(0, Mathf.Min(originalFoodEnergy, remainFoodEnergy));
+        data.SetBlackboardValue(BaseData.BlackboardKeys.FruitEnergy, finalFoodEnergy);
     }
 
     // 计算建筑提供的食物减耗（厨房5% + 每个食堂12点）
     private int GetFoodReductionBonus(BaseData data)
     {
-        int totalNeedFood = 0;
-        for (int i = 0; i < data.shushuList.Count; i++)
+        List<Shushu> shushuList = data.GetBlackboardValue(BaseData.BlackboardKeys.ShushuList, data.shushuList);
+        if (shushuList == null)
         {
-            Shushu shushu = data.shushuList[i];
+            return 0;
+        }
+
+        int totalNeedFood = 0;
+        for (int i = 0; i < shushuList.Count; i++)
+        {
+            Shushu shushu = shushuList[i];
             if (shushu == null)
             {
                 continue;
@@ -62,11 +75,12 @@ public class EatFood : MonoBehaviour
         bool hasActiveKitchen = false;
         int cafeteriaCount = 0;
 
-        if (data.roomList != null)
+        List<Room> roomList = data.GetBlackboardValue(BaseData.BlackboardKeys.RoomList, data.roomList);
+        if (roomList != null)
         {
-            for (int i = 0; i < data.roomList.Count; i++)
+            for (int i = 0; i < roomList.Count; i++)
             {
-                Room room = data.roomList[i];
+                Room room = roomList[i];
                 if (room == null)
                 {
                     continue;
@@ -95,7 +109,8 @@ public class EatFood : MonoBehaviour
     // 判断房间中是否存在已分配的有效工作鼠鼠
     private bool HasWorkingShushuInRoom(BaseData data, Room room)
     {
-        if (data == null || data.shushuList == null || room == null || room.shushuIds == null)
+        List<Shushu> shushuList = data.GetBlackboardValue(BaseData.BlackboardKeys.ShushuList, data.shushuList);
+        if (data == null || shushuList == null || room == null || room.shushuIds == null)
         {
             return false;
         }

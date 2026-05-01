@@ -306,6 +306,7 @@ public class TaskManager : MonoBehaviour
             return;
         }
 
+        BaseData data = BaseData.instance;
         for (int i = 0; i < task.rewards.Count; i++)
         {
             TaskReward reward = task.rewards[i];
@@ -317,21 +318,24 @@ public class TaskManager : MonoBehaviour
             switch (reward.rewardType)
             {
                 case TaskResourceType.NatureEnergy:
-                    if (BaseData.instance != null)
+                    if (data != null)
                     {
-                        BaseData.instance.natureEnergy += reward.amount;
+                        int current = data.GetBlackboardValue(BaseData.BlackboardKeys.NatureEnergy, data.natureEnergy);
+                        data.SetBlackboardValue(BaseData.BlackboardKeys.NatureEnergy, current + reward.amount);
                     }
                     break;
                 case TaskResourceType.RootEnergy:
-                    if (BaseData.instance != null)
+                    if (data != null)
                     {
-                        BaseData.instance.rootEnergy += reward.amount;
+                        int current = data.GetBlackboardValue(BaseData.BlackboardKeys.RootEnergy, data.rootEnergy);
+                        data.SetBlackboardValue(BaseData.BlackboardKeys.RootEnergy, current + reward.amount);
                     }
                     break;
                 case TaskResourceType.FruitEnergy:
-                    if (BaseData.instance != null)
+                    if (data != null)
                     {
-                        BaseData.instance.fruitEnergy += reward.amount;
+                        int current = data.GetBlackboardValue(BaseData.BlackboardKeys.FruitEnergy, data.fruitEnergy);
+                        data.SetBlackboardValue(BaseData.BlackboardKeys.FruitEnergy, current + reward.amount);
                     }
                     break;
                 case TaskResourceType.ExpandSpace:
@@ -376,23 +380,27 @@ public class TaskManager : MonoBehaviour
     // 通过“当前值差量”更新累计获得资源（只累计正向增长，不计算消耗）
     private void UpdateAccumulatedResources()
     {
-        if (BaseData.instance == null)
+        BaseData data = BaseData.instance;
+        if (data == null)
         {
             return;
         }
 
         if (!hasResourceSnapshot)
         {
-            lastNatureEnergy = BaseData.instance.natureEnergy;
-            lastRootEnergy = BaseData.instance.rootEnergy;
-            lastFruitEnergy = BaseData.instance.fruitEnergy;
+            lastNatureEnergy = data.GetBlackboardValue(BaseData.BlackboardKeys.NatureEnergy, data.natureEnergy);
+            lastRootEnergy = data.GetBlackboardValue(BaseData.BlackboardKeys.RootEnergy, data.rootEnergy);
+            lastFruitEnergy = data.GetBlackboardValue(BaseData.BlackboardKeys.FruitEnergy, data.fruitEnergy);
             hasResourceSnapshot = true;
             return;
         }
 
-        int deltaNature = BaseData.instance.natureEnergy - lastNatureEnergy;
-        int deltaRoot = BaseData.instance.rootEnergy - lastRootEnergy;
-        int deltaFruit = BaseData.instance.fruitEnergy - lastFruitEnergy;
+        int currentNature = data.GetBlackboardValue(BaseData.BlackboardKeys.NatureEnergy, data.natureEnergy);
+        int currentRoot = data.GetBlackboardValue(BaseData.BlackboardKeys.RootEnergy, data.rootEnergy);
+        int currentFruit = data.GetBlackboardValue(BaseData.BlackboardKeys.FruitEnergy, data.fruitEnergy);
+        int deltaNature = currentNature - lastNatureEnergy;
+        int deltaRoot = currentRoot - lastRootEnergy;
+        int deltaFruit = currentFruit - lastFruitEnergy;
 
         if (deltaNature > 0)
         {
@@ -409,9 +417,9 @@ public class TaskManager : MonoBehaviour
             totalFruitEnergyEarned += deltaFruit;
         }
 
-        lastNatureEnergy = BaseData.instance.natureEnergy;
-        lastRootEnergy = BaseData.instance.rootEnergy;
-        lastFruitEnergy = BaseData.instance.fruitEnergy;
+        lastNatureEnergy = currentNature;
+        lastRootEnergy = currentRoot;
+        lastFruitEnergy = currentFruit;
     }
 
     #endregion
@@ -421,7 +429,14 @@ public class TaskManager : MonoBehaviour
     // 获取某建筑数量（key为BuildingId字符串，如"501"）
     public int GetBuildingCount(string buildingKey)
     {
-        if (BaseData.instance == null || BaseData.instance.roomList == null)
+        BaseData data = BaseData.instance;
+        if (data == null)
+        {
+            return 0;
+        }
+
+        List<Room> roomList = data.GetBlackboardValue(BaseData.BlackboardKeys.RoomList, data.roomList);
+        if (roomList == null)
         {
             return 0;
         }
@@ -433,9 +448,9 @@ public class TaskManager : MonoBehaviour
         }
 
         int count = 0;
-        for (int i = 0; i < BaseData.instance.roomList.Count; i++)
+        for (int i = 0; i < roomList.Count; i++)
         {
-            Room room = BaseData.instance.roomList[i];
+            Room room = roomList[i];
             if (room == null)
             {
                 continue;
@@ -569,15 +584,16 @@ public class TaskManager : MonoBehaviour
             return false;
         }
 
+        // 使用黑板键名做统一映射，避免字符串散落。
         switch (key)
         {
-            case "NatureEnergy":
+            case BaseData.BlackboardKeys.NatureEnergy:
                 resourceType = TaskResourceType.NatureEnergy;
                 return true;
-            case "RootEnergy":
+            case BaseData.BlackboardKeys.RootEnergy:
                 resourceType = TaskResourceType.RootEnergy;
                 return true;
-            case "FruitEnergy":
+            case BaseData.BlackboardKeys.FruitEnergy:
                 resourceType = TaskResourceType.FruitEnergy;
                 return true;
             default:
@@ -601,7 +617,8 @@ public class TaskManager : MonoBehaviour
     // 获取资源值：支持当前值和累计值两类来源
     private int GetResourceValue(TaskResourceType resourceType, bool useAccumulated)
     {
-        if (!useAccumulated && BaseData.instance == null)
+        BaseData data = BaseData.instance;
+        if (!useAccumulated && data == null)
         {
             return 0;
         }
@@ -609,11 +626,11 @@ public class TaskManager : MonoBehaviour
         switch (resourceType)
         {
             case TaskResourceType.NatureEnergy:
-                return useAccumulated ? totalNatureEnergyEarned : BaseData.instance.natureEnergy;
+                return useAccumulated ? totalNatureEnergyEarned : data.GetBlackboardValue(BaseData.BlackboardKeys.NatureEnergy, data.natureEnergy);
             case TaskResourceType.RootEnergy:
-                return useAccumulated ? totalRootEnergyEarned : BaseData.instance.rootEnergy;
+                return useAccumulated ? totalRootEnergyEarned : data.GetBlackboardValue(BaseData.BlackboardKeys.RootEnergy, data.rootEnergy);
             case TaskResourceType.FruitEnergy:
-                return useAccumulated ? totalFruitEnergyEarned : BaseData.instance.fruitEnergy;
+                return useAccumulated ? totalFruitEnergyEarned : data.GetBlackboardValue(BaseData.BlackboardKeys.FruitEnergy, data.fruitEnergy);
             default:
                 return 0;
         }
@@ -628,7 +645,14 @@ public class TaskManager : MonoBehaviour
     // 获取当前鼠鼠数量
     public int GetShushuCount()
     {
-        return BaseData.instance == null || BaseData.instance.shushuList == null ? 0 : BaseData.instance.shushuList.Count;
+        BaseData data = BaseData.instance;
+        if (data == null)
+        {
+            return 0;
+        }
+
+        List<Shushu> shushuList = data.GetBlackboardValue(BaseData.BlackboardKeys.ShushuList, data.shushuList);
+        return shushuList == null ? 0 : shushuList.Count;
     }
 
     // 判定“鼠鼠数量至少为X”条件
@@ -645,14 +669,21 @@ public class TaskManager : MonoBehaviour
     // 判断是否存在满足“任一属性>=x”的鼠鼠
     public bool HasShushuAnyStatAtLeast(int value)
     {
-        if (BaseData.instance == null || BaseData.instance.shushuList == null)
+        BaseData data = BaseData.instance;
+        if (data == null)
         {
             return false;
         }
 
-        for (int i = 0; i < BaseData.instance.shushuList.Count; i++)
+        List<Shushu> shushuList = data.GetBlackboardValue(BaseData.BlackboardKeys.ShushuList, data.shushuList);
+        if (shushuList == null)
         {
-            Shushu shushu = BaseData.instance.shushuList[i];
+            return false;
+        }
+
+        for (int i = 0; i < shushuList.Count; i++)
+        {
+            Shushu shushu = shushuList[i];
             if (shushu == null)
             {
                 continue;
@@ -690,15 +721,22 @@ public class TaskManager : MonoBehaviour
     // 获取已获得收藏品核桃总数
     public int GetWallNutTotalCount()
     {
-        if (BaseData.instance == null || BaseData.instance.wallNutNum == null)
+        BaseData data = BaseData.instance;
+        if (data == null)
+        {
+            return 0;
+        }
+
+        int[] wallNutNum = data.GetBlackboardValue(BaseData.BlackboardKeys.WallNutNum, data.wallNutNum);
+        if (wallNutNum == null)
         {
             return 0;
         }
 
         int total = 0;
-        for (int i = 0; i < BaseData.instance.wallNutNum.Length; i++)
+        for (int i = 0; i < wallNutNum.Length; i++)
         {
-            total += BaseData.instance.wallNutNum[i];
+            total += wallNutNum[i];
         }
 
         return total;
@@ -707,15 +745,22 @@ public class TaskManager : MonoBehaviour
     // 获取已获得收藏品核桃种类数
     public int GetWallNutUniqueTypeCount()
     {
-        if (BaseData.instance == null || BaseData.instance.wallNutNum == null)
+        BaseData data = BaseData.instance;
+        if (data == null)
+        {
+            return 0;
+        }
+
+        int[] wallNutNum = data.GetBlackboardValue(BaseData.BlackboardKeys.WallNutNum, data.wallNutNum);
+        if (wallNutNum == null)
         {
             return 0;
         }
 
         int unique = 0;
-        for (int i = 0; i < BaseData.instance.wallNutNum.Length; i++)
+        for (int i = 0; i < wallNutNum.Length; i++)
         {
-            if (BaseData.instance.wallNutNum[i] > 0)
+            if (wallNutNum[i] > 0)
             {
                 unique += 1;
             }

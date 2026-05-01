@@ -85,7 +85,15 @@ public class RollNewShu : MonoBehaviour
     // HR加成预留函数（后续在这里加逻辑）
     private void ApplyHrBonus(Shushu shushu)
     {
-        if (shushu == null || BaseData.instance == null || BaseData.instance.roomList == null)
+        BaseData data = BaseData.instance;
+        if (shushu == null || data == null)
+        {
+            return;
+        }
+
+        List<Room> roomList = data.GetBlackboardValue(BaseData.BlackboardKeys.RoomList, data.roomList);
+        List<Shushu> shushuList = data.GetBlackboardValue(BaseData.BlackboardKeys.ShushuList, data.shushuList);
+        if (roomList == null || shushuList == null)
         {
             return;
         }
@@ -93,9 +101,9 @@ public class RollNewShu : MonoBehaviour
         int hrRoomWithWorkers = 0;
         int hrIntelligenceSum = 0;
 
-        for (int i = 0; i < BaseData.instance.roomList.Count; i++)
+        for (int i = 0; i < roomList.Count; i++)
         {
-            Room room = BaseData.instance.roomList[i];
+            Room room = roomList[i];
             if (room == null || room.buildingId != "101" || room.shushuIds == null)
             {
                 continue;
@@ -104,7 +112,7 @@ public class RollNewShu : MonoBehaviour
             int roomWorkerCount = 0;
             for (int j = 0; j < room.shushuIds.Count; j++)
             {
-                Shushu hrShu = FindShushuById(room.shushuIds[j]);
+                Shushu hrShu = FindShushuById(shushuList, room.shushuIds[j]);
                 if (hrShu == null)
                 {
                     continue;
@@ -158,16 +166,16 @@ public class RollNewShu : MonoBehaviour
     }
 
     // 通过Id在仓库中查找鼠鼠对象。
-    private Shushu FindShushuById(string id)
+    private Shushu FindShushuById(List<Shushu> shushuList, string id)
     {
-        if (string.IsNullOrEmpty(id) || BaseData.instance == null || BaseData.instance.shushuList == null)
+        if (string.IsNullOrEmpty(id) || shushuList == null)
         {
             return null;
         }
 
-        for (int i = 0; i < BaseData.instance.shushuList.Count; i++)
+        for (int i = 0; i < shushuList.Count; i++)
         {
-            Shushu shu = BaseData.instance.shushuList[i];
+            Shushu shu = shushuList[i];
             if (shu != null && shu.Id == id)
             {
                 return shu;
@@ -218,14 +226,19 @@ public class RollNewShu : MonoBehaviour
     {
         HashSet<string> usedNames = new HashSet<string>();
 
-        if (BaseData.instance != null && BaseData.instance.shushuList != null)
+        BaseData data = BaseData.instance;
+        if (data != null)
         {
-            for (int i = 0; i < BaseData.instance.shushuList.Count; i++)
+            List<Shushu> shushuList = data.GetBlackboardValue(BaseData.BlackboardKeys.ShushuList, data.shushuList);
+            if (shushuList != null)
             {
-                Shushu shushu = BaseData.instance.shushuList[i];
-                if (shushu != null && !string.IsNullOrEmpty(shushu.Name))
+                for (int i = 0; i < shushuList.Count; i++)
                 {
-                    usedNames.Add(shushu.Name);
+                    Shushu shushu = shushuList[i];
+                    if (shushu != null && !string.IsNullOrEmpty(shushu.Name))
+                    {
+                        usedNames.Add(shushu.Name);
+                    }
                 }
             }
         }

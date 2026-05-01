@@ -48,14 +48,20 @@ public class WallNutManager : MonoBehaviour
     {
         float chance = 5f;
 
-        if (data == null || data.shushuList == null || room == null || room.shushuIds == null)
+        if (data == null || room == null || room.shushuIds == null)
+        {
+            return chance;
+        }
+
+        List<Shushu> shushuList = data.GetBlackboardValue(BaseData.BlackboardKeys.ShushuList, data.shushuList);
+        if (shushuList == null)
         {
             return chance;
         }
 
         for (int i = 0; i < room.shushuIds.Count; i++)
         {
-            Shushu shu = FindShushuById(data, room.shushuIds[i]);
+            Shushu shu = FindShushuById(shushuList, room.shushuIds[i]);
             if (shu == null)
             {
                 continue;
@@ -110,16 +116,16 @@ public class WallNutManager : MonoBehaviour
     }
 
     // 按Id从BaseData中查找鼠鼠。
-    private Shushu FindShushuById(BaseData data, string shushuId)
+    private Shushu FindShushuById(List<Shushu> shushuList, string shushuId)
     {
-        if (data == null || data.shushuList == null || string.IsNullOrEmpty(shushuId))
+        if (shushuList == null || string.IsNullOrEmpty(shushuId))
         {
             return null;
         }
 
-        for (int i = 0; i < data.shushuList.Count; i++)
+        for (int i = 0; i < shushuList.Count; i++)
         {
-            Shushu shu = data.shushuList[i];
+            Shushu shu = shushuList[i];
             if (shu != null && shu.Id == shushuId)
             {
                 return shu;

@@ -72,10 +72,13 @@ public class TimeLine : MonoBehaviour
         UpdateDayBackgroundByTime();
 
         var baseData = BaseData.instance;
-        if (baseData == null || buildingPool == null || baseData.roomList == null) return;
+        if (baseData == null || buildingPool == null) return;
 
-        ResolveProduction(baseData);
-        TryStartProduction(baseData);
+        List<Room> roomList = baseData.GetBlackboardValue(BaseData.BlackboardKeys.RoomList, baseData.roomList);
+        if (roomList == null) return;
+
+        ResolveProduction(baseData, roomList);
+        TryStartProduction(baseData, roomList);
     }
 
     #region 昼夜背景功能
@@ -114,11 +117,11 @@ public class TimeLine : MonoBehaviour
     #endregion
 
     // 结算所有已完成等待时间的生产周期。
-    private void ResolveProduction(BaseData baseData)
+    private void ResolveProduction(BaseData baseData, List<Room> roomList)
     {
-        for (int i = 0; i < baseData.roomList.Count; i++)
+        for (int i = 0; i < roomList.Count; i++)
         {
-            Room room = baseData.roomList[i];
+            Room room = roomList[i];
             if (room == null || string.IsNullOrEmpty(room.instanceId)) continue;
 
             if (room.isProductionPaused) continue;
@@ -139,9 +142,13 @@ public class TimeLine : MonoBehaviour
                 int nutrientOut = Mathf.RoundToInt(building.nutrientProduce * efficiencyMultiplier);
                 int fruitOut = Mathf.RoundToInt(building.fruitProduce * efficiencyMultiplier);
 
-                baseData.natureEnergy += magicOut;
-                baseData.rootEnergy += nutrientOut;
-                baseData.fruitEnergy += fruitOut;
+                int currentNature = baseData.GetBlackboardValue(BaseData.BlackboardKeys.NatureEnergy, baseData.natureEnergy);
+                int currentRoot = baseData.GetBlackboardValue(BaseData.BlackboardKeys.RootEnergy, baseData.rootEnergy);
+                int currentFruit = baseData.GetBlackboardValue(BaseData.BlackboardKeys.FruitEnergy, baseData.fruitEnergy);
+
+                baseData.SetBlackboardValue(BaseData.BlackboardKeys.NatureEnergy, currentNature + magicOut);
+                baseData.SetBlackboardValue(BaseData.BlackboardKeys.RootEnergy, currentRoot + nutrientOut);
+                baseData.SetBlackboardValue(BaseData.BlackboardKeys.FruitEnergy, currentFruit + fruitOut);
                 EnqueueTiaoZi(room, "产出");
                 TryResolveWallNutDrop(baseData, room);
             }
@@ -152,13 +159,13 @@ public class TimeLine : MonoBehaviour
     }
 
     // 每秒对空闲建筑尝试投料，满足规则才进入生产等待。
-    private void TryStartProduction(BaseData baseData)
+    private void TryStartProduction(BaseData baseData, List<Room> roomList)
     {
         float remainingToday = dayDuration - secondInDay;
 
-        for (int i = 0; i < baseData.roomList.Count; i++)
+        for (int i = 0; i < roomList.Count; i++)
         {
-            Room room = baseData.roomList[i];
+            Room room = roomList[i];
             if (room == null || string.IsNullOrEmpty(room.instanceId)) continue;
 
             if (room.isProductionPaused) continue;
@@ -267,9 +274,15 @@ public class TimeLine : MonoBehaviour
             return;
         }
 
+        List<Shushu> shushuList = baseData.GetBlackboardValue(BaseData.BlackboardKeys.ShushuList, baseData.shushuList);
+        if (shushuList == null)
+        {
+            return;
+        }
+
         for (int i = 0; i < room.shushuIds.Count; i++)
         {
-            Shushu shu = FindShushuById(baseData, room.shushuIds[i]);
+            Shushu shu = FindShushuById(shushuList, room.shushuIds[i]);
             if (shu == null)
             {
                 continue;
@@ -294,9 +307,15 @@ public class TimeLine : MonoBehaviour
             return false;
         }
 
+        List<Shushu> shushuList = baseData.GetBlackboardValue(BaseData.BlackboardKeys.ShushuList, baseData.shushuList);
+        if (shushuList == null)
+        {
+            return false;
+        }
+
         for (int i = 0; i < room.shushuIds.Count; i++)
         {
-            if (FindShushuById(baseData, room.shushuIds[i]) != null)
+            if (FindShushuById(shushuList, room.shushuIds[i]) != null)
             {
                 return true;
             }
@@ -358,9 +377,13 @@ public class TimeLine : MonoBehaviour
             return;
         }
 
-        baseData.natureEnergy += building.magicConsume;
-        baseData.rootEnergy += building.nutrientConsume;
-        baseData.fruitEnergy += building.fruitConsume;
+        int currentNature = baseData.GetBlackboardValue(BaseData.BlackboardKeys.NatureEnergy, baseData.natureEnergy);
+        int currentRoot = baseData.GetBlackboardValue(BaseData.BlackboardKeys.RootEnergy, baseData.rootEnergy);
+        int currentFruit = baseData.GetBlackboardValue(BaseData.BlackboardKeys.FruitEnergy, baseData.fruitEnergy);
+
+        baseData.SetBlackboardValue(BaseData.BlackboardKeys.NatureEnergy, currentNature + building.magicConsume);
+        baseData.SetBlackboardValue(BaseData.BlackboardKeys.RootEnergy, currentRoot + building.nutrientConsume);
+        baseData.SetBlackboardValue(BaseData.BlackboardKeys.FruitEnergy, currentFruit + building.fruitConsume);
     }
 
     // 设置房间内所有已分配鼠鼠的工作状态。
@@ -371,9 +394,15 @@ public class TimeLine : MonoBehaviour
             return;
         }
 
+        List<Shushu> shushuList = baseData.GetBlackboardValue(BaseData.BlackboardKeys.ShushuList, baseData.shushuList);
+        if (shushuList == null)
+        {
+            return;
+        }
+
         for (int i = 0; i < room.shushuIds.Count; i++)
         {
-            Shushu shu = FindShushuById(baseData, room.shushuIds[i]);
+            Shushu shu = FindShushuById(shushuList, room.shushuIds[i]);
             if (shu != null)
             {
                 shu.isWorking = isWorking;
@@ -396,17 +425,25 @@ public class TimeLine : MonoBehaviour
     // 判断资源是否满足本次投料消耗。
     private bool CanConsume(BaseData baseData, Building building)
     {
-        return baseData.natureEnergy >= building.magicConsume
-               && baseData.rootEnergy >= building.nutrientConsume
-               && baseData.fruitEnergy >= building.fruitConsume;
+        int currentNature = baseData.GetBlackboardValue(BaseData.BlackboardKeys.NatureEnergy, baseData.natureEnergy);
+        int currentRoot = baseData.GetBlackboardValue(BaseData.BlackboardKeys.RootEnergy, baseData.rootEnergy);
+        int currentFruit = baseData.GetBlackboardValue(BaseData.BlackboardKeys.FruitEnergy, baseData.fruitEnergy);
+
+        return currentNature >= building.magicConsume
+               && currentRoot >= building.nutrientConsume
+               && currentFruit >= building.fruitConsume;
     }
 
     // 执行一次投料扣除。
     private void Consume(BaseData baseData, Building building)
     {
-        baseData.natureEnergy -= building.magicConsume;
-        baseData.rootEnergy -= building.nutrientConsume;
-        baseData.fruitEnergy -= building.fruitConsume;
+        int currentNature = baseData.GetBlackboardValue(BaseData.BlackboardKeys.NatureEnergy, baseData.natureEnergy);
+        int currentRoot = baseData.GetBlackboardValue(BaseData.BlackboardKeys.RootEnergy, baseData.rootEnergy);
+        int currentFruit = baseData.GetBlackboardValue(BaseData.BlackboardKeys.FruitEnergy, baseData.fruitEnergy);
+
+        baseData.SetBlackboardValue(BaseData.BlackboardKeys.NatureEnergy, currentNature - building.magicConsume);
+        baseData.SetBlackboardValue(BaseData.BlackboardKeys.RootEnergy, currentRoot - building.nutrientConsume);
+        baseData.SetBlackboardValue(BaseData.BlackboardKeys.FruitEnergy, currentFruit - building.fruitConsume);
     }
 
     // 判断该建筑是否存在任意投料消耗。
@@ -459,10 +496,16 @@ public class TimeLine : MonoBehaviour
             return false;
         }
 
+        List<Shushu> shushuList = baseData == null ? null : baseData.GetBlackboardValue(BaseData.BlackboardKeys.ShushuList, baseData.shushuList);
+        if (shushuList == null)
+        {
+            return false;
+        }
+
         int validCount = 0;
         for (int i = 0; i < room.shushuIds.Count; i++)
         {
-            Shushu shu = FindShushuById(baseData, room.shushuIds[i]);
+            Shushu shu = FindShushuById(shushuList, room.shushuIds[i]);
             if (shu != null)
             {
                 validCount++;
@@ -480,9 +523,15 @@ public class TimeLine : MonoBehaviour
             return false;
         }
 
+        List<Shushu> shushuList = baseData == null ? null : baseData.GetBlackboardValue(BaseData.BlackboardKeys.ShushuList, baseData.shushuList);
+        if (shushuList == null)
+        {
+            return false;
+        }
+
         for (int i = 0; i < room.shushuIds.Count; i++)
         {
-            Shushu shu = FindShushuById(baseData, room.shushuIds[i]);
+            Shushu shu = FindShushuById(shushuList, room.shushuIds[i]);
             if (shu != null && shu.isHungry)
             {
                 return true;
@@ -493,16 +542,16 @@ public class TimeLine : MonoBehaviour
     }
 
     // 按 Id 从仓库查找鼠鼠对象。
-    private Shushu FindShushuById(BaseData baseData, string id)
+    private Shushu FindShushuById(List<Shushu> shushuList, string id)
     {
-        if (baseData == null || baseData.shushuList == null || string.IsNullOrEmpty(id))
+        if (shushuList == null || string.IsNullOrEmpty(id))
         {
             return null;
         }
 
-        for (int i = 0; i < baseData.shushuList.Count; i++)
+        for (int i = 0; i < shushuList.Count; i++)
         {
-            Shushu shu = baseData.shushuList[i];
+            Shushu shu = shushuList[i];
             if (shu != null && shu.Id == id)
             {
                 return shu;
@@ -520,12 +569,18 @@ public class TimeLine : MonoBehaviour
             return 1f;
         }
 
+        List<Shushu> shushuList = baseData == null ? null : baseData.GetBlackboardValue(BaseData.BlackboardKeys.ShushuList, baseData.shushuList);
+        if (shushuList == null)
+        {
+            return 1f;
+        }
+
         float totalMultiplier = 1f;
         string capability = building.capabilityToEnhanceEfficiency;
 
         for (int i = 0; i < room.shushuIds.Count; i++)
         {
-            Shushu shu = FindShushuById(baseData, room.shushuIds[i]);
+            Shushu shu = FindShushuById(shushuList, room.shushuIds[i]);
             if (shu == null)
             {
                 continue;

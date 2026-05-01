@@ -19,12 +19,15 @@ public class ShuStorePanel : MonoBehaviour
     private Text[] photoNameTexts;
     private Image[] photoImages;
     private Button[] photoButtons;
+    private UIManager uiManager;
 
     public BuilidingPool buildingPool;   
 
 
+    #region 生命周期
     void Start()
     {
+        EnsureUIManager();
         // 初始化按钮事件
         BindButtonEvents();
         // 缓存每个照片格子的文本组件
@@ -33,11 +36,9 @@ public class ShuStorePanel : MonoBehaviour
         currentPage = 0;
         RefreshPage();
 
-        if (storePanel != null)
-        {
-            storePanel.SetActive(false);
-        }
+        CloseStorePanel();
     }
+    #endregion
 
     #region 按键逻辑
     private void OnDestroy()
@@ -106,9 +107,10 @@ public class ShuStorePanel : MonoBehaviour
     // 打开仓库面板并刷新数据
     private void OpenStorePanel()
     {
-        if (storePanel != null)
+        EnsureUIManager();
+        if (uiManager != null)
         {
-            storePanel.SetActive(true);
+            uiManager.OpenPanel(storePanel);
         }
 
         currentPage = 0;
@@ -118,9 +120,10 @@ public class ShuStorePanel : MonoBehaviour
     // 关闭仓库面板
     private void CloseStorePanel()
     {
-        if (storePanel != null)
+        EnsureUIManager();
+        if (uiManager != null)
         {
-            storePanel.SetActive(false);
+            uiManager.ClosePanel(storePanel);
         }
     }
 
@@ -156,7 +159,8 @@ public class ShuStorePanel : MonoBehaviour
     // 按当前页刷新10个Photo显示，数量不足则清空后续格子文本
     private void RefreshPage()
     {
-        List<Shushu> list = BaseData.instance != null ? BaseData.instance.shushuList : null;
+        BaseData data = BaseData.instance;
+        List<Shushu> list = data != null ? data.GetBlackboardValue(BaseData.BlackboardKeys.ShushuList, data.shushuList) : null;
         int totalCount = list != null ? list.Count : 0;
         int totalPages = GetTotalPages(totalCount);
 
@@ -208,8 +212,23 @@ public class ShuStorePanel : MonoBehaviour
             ShushuText.text = string.Empty;
         }
 
-        StoreNum.text = $"床位情况：{totalCount}/{BaseData.instance.MaxShuShu}";
+        if (data != null)
+        {
+            int maxShuShu = data.GetBlackboardValue(BaseData.BlackboardKeys.MaxShuShu, data.MaxShuShu);
+            StoreNum.text = $"床位情况：{totalCount}/{maxShuShu}";
+        }
     }
+
+    #region UI管理器
+    // 获取UIManager实例。
+    private void EnsureUIManager()
+    {
+        if (uiManager == null)
+        {
+            uiManager = UIManager.Instance != null ? UIManager.Instance : FindObjectOfType<UIManager>();
+        }
+    }
+    #endregion
 
     #region 数据预处理
     // 缓存每个Photo下文本、图片、按钮组件，并绑定点击事件
@@ -261,7 +280,8 @@ public class ShuStorePanel : MonoBehaviour
             return;
         }
 
-        List<Shushu> list = BaseData.instance != null ? BaseData.instance.shushuList : null;
+        BaseData data = BaseData.instance;
+        List<Shushu> list = data != null ? data.GetBlackboardValue(BaseData.BlackboardKeys.ShushuList, data.shushuList) : null;
         int totalCount = list != null ? list.Count : 0;
         int dataIndex = currentPage * PageSize + slotIndex;
 
@@ -272,68 +292,14 @@ public class ShuStorePanel : MonoBehaviour
         }
 
         Shushu shu = list[dataIndex];
-        string buffText = BuffWord.BuildBuffDisplayText(shu);
-        if (string.IsNullOrEmpty(buffText))
+        if (data != null)
         {
-            buffText = "无";
+            ShushuText.text = data.GetShushuInfoText(shu, true, buildingPool);
         }
-
-        string workLocationText = GetWorkLocationText(shu);
-
-        ShushuText.text = "姓名：" + shu.Name +
-                         "\n体力：" + shu.endurance +
-                         "\n智力：" + shu.intelligence +
-                         "\n法力：" + shu.magicPower +
-                         "\n食量：" + shu.foodIntake +
-                         "\n词条：\n" + buffText+
-                         "\n工作地点：" + workLocationText;
     }
 
     #region 工作地点显示
-    // 获取鼠鼠当前工作地点文本；未分配工作时返回“待分配”。
-    private string GetWorkLocationText(Shushu shu)
-    {
-        if (shu == null || BaseData.instance == null)
-        {
-            return "待分配";
-        }
-
-        if (string.IsNullOrEmpty(shu.Id))
-        {
-            return "待分配";
-        }
-
-        Room room = BaseData.instance.GetWorkRoomByShushuId(shu.Id);
-        if (room == null)
-        {
-            return "待分配";
-        }
-
-        string buildingId = string.IsNullOrEmpty(room.buildingId) ? string.Empty : room.buildingId;
-        if (string.IsNullOrEmpty(buildingId))
-        {
-            return "未知建筑";
-        }
-
-        if (buildingPool == null)
-        {
-            return "未知建筑";
-        }
-
-        int id;
-        if (!int.TryParse(buildingId, out id))
-        {
-            return "未知建筑";
-        }
-
-        Building building = buildingPool.GetBuildingById(id);
-        if (building == null || string.IsNullOrEmpty(building.Name))
-        {
-            return "未知建筑";
-        }
-
-        return building.Name;
-    }
+    // 工作地点文本由BaseData统一生成，避免重复逻辑。
     #endregion
 
     // 计算总页数，至少保留1页用于展示空槽位
