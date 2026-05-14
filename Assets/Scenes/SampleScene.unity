@@ -1977,7 +1977,6 @@ Transform:
   - {fileID: 1027978780}
   - {fileID: 1379338547}
   - {fileID: 784767966}
-  - {fileID: 1106785258}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &398731692
@@ -8714,9 +8713,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1027978780}
   - component: {fileID: 1027978779}
-  - component: {fileID: 1027978778}
   - component: {fileID: 1027978781}
-  - component: {fileID: 1027978782}
   m_Layer: 0
   m_Name: BuildingManager
   m_TagString: Untagged
@@ -8724,20 +8721,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1027978778
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1027978777}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b2aa99ef2ac1a6349a9793a8e66cf01a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  buildingJson: {fileID: 4900000, guid: a5dba2065ef13ba4d8ed1a74f7de17ee, type: 3}
-  pool: {fileID: 1027978779}
 --- !u!114 &1027978779
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8750,6 +8733,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5544d5ecd86e5b84d8b5c08c1442a094, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  buildingJson: {fileID: 4900000, guid: a5dba2065ef13ba4d8ed1a74f7de17ee, type: 3}
   buildings: []
 --- !u!4 &1027978780
 Transform:
@@ -8781,22 +8765,7 @@ MonoBehaviour:
   buildingPanelWiget: {fileID: 140231444}
   cellManager: {fileID: 1182656718}
   mainCamera: {fileID: 519420031}
---- !u!114 &1027978782
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1027978777}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8b469154f79646d469e038e8f7fc9a0f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  cellManager: {fileID: 1182656718}
-  mainCamera: {fileID: 519420031}
   isDestorying: 0
-  buildingPanelWiget: {fileID: 140231444}
 --- !u!1 &1040708426
 GameObject:
   m_ObjectHideFlags: 0
@@ -9464,11 +9433,11 @@ Transform:
   m_GameObject: {fileID: 1106785256}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -919.195, y: -523.35034, z: -0.4629932}
+  m_LocalPosition: {x: 40.804993, y: 16.649658, z: -0.4629932}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 352272356}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1119451690
 GameObject:
@@ -12660,7 +12629,7 @@ MonoBehaviour:
   mainCamera: {fileID: 519420031}
   buildingPool: {fileID: 1027978779}
   buildingPanelWiget: {fileID: 140231444}
-  bpDestory: {fileID: 1027978782}
+  bpDestory: {fileID: 1027978781}
   stopBuildingUI: {fileID: 92067827}
 --- !u!1 &1434807132
 GameObject:
@@ -17172,7 +17141,7 @@ MonoBehaviour:
   DestoryingSprite: {fileID: 21300000, guid: afa744384bfeaca4092fa66b0f19f672, type: 3}
   DestorySprite: {fileID: 21300000, guid: 802bf32508405d743b9adc43dc1050a8, type: 3}
   isDestorying: 0
-  bpDestory: {fileID: 1027978782}
+  bpDestory: {fileID: 1027978781}
 --- !u!1 &2032623759
 GameObject:
   m_ObjectHideFlags: 0
@@ -18131,3 +18100,4 @@ SceneRoots:
   - {fileID: 1515101838}
   - {fileID: 352272356}
   - {fileID: 542613415}
+  - {fileID: 1106785258}

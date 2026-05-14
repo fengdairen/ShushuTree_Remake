@@ -46,7 +46,7 @@ public class AllocatePanel : MonoBehaviour
     public Camera mainCamera;
     public BuilidingPool buildingPool;
     public BuildingPanelWiget buildingPanelWiget;
-    public BPDestory bpDestory;
+    public BPbuild bpDestory;
     public StopBuildingUI stopBuildingUI;
     private UIManager uiManager;
 

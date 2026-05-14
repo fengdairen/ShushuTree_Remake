@@ -18,7 +18,7 @@ public class TabPageManager : MonoBehaviour
     public Sprite DestoryingSprite;
     public Sprite DestorySprite;
     public bool isDestorying = false;
-    public BPDestory bpDestory;
+    public BPbuild bpDestory;
     private UIManager uiManager;
 
 
@@ -72,13 +72,19 @@ public class TabPageManager : MonoBehaviour
         {
                 destoryButton.GetComponent<Image>().sprite = DestorySprite;
                 isDestorying = false;
-                bpDestory.isDestorying = false;
+                if (bpDestory != null)
+                {
+                    bpDestory.isDestorying = false;
+                }
         }
         else
         {
                 destoryButton.GetComponent<Image>().sprite = DestoryingSprite;
                 isDestorying = true;
-                bpDestory.isDestorying = true;
+                if (bpDestory != null)
+                {
+                    bpDestory.isDestorying = true;
+                }
 
         }
     }
