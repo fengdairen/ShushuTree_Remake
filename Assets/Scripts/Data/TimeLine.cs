@@ -601,8 +601,8 @@ public class TimeLine : MonoBehaviour
             return 0;
         }
 
-        string key = capability.Trim().ToLowerInvariant();
-        if (key == "endurance" )
+        string key = NormalizeCapabilityKey(capability);
+        if (key == "endurance")
         {
             return shu.endurance;
         }
@@ -618,6 +618,19 @@ public class TimeLine : MonoBehaviour
         }
 
         return 0;
+    }
+
+    // 统一规范化能力字段，避免配置格式影响匹配。
+    private string NormalizeCapabilityKey(string capability)
+    {
+        if (string.IsNullOrEmpty(capability))
+        {
+            return string.Empty;
+        }
+
+        string key = capability.Trim().ToLowerInvariant();
+        key = key.Replace(" ", string.Empty).Replace("_", string.Empty).Replace("-", string.Empty);
+        return key;
     }
 
     // 将单只鼠鼠能力值转换为产出倍率：1/2 为减益，3+ 为微量增益。

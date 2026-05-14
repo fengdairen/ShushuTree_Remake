@@ -14,6 +14,8 @@ public class TaskPanel : MonoBehaviour
     public TaskManager taskManager;
     private UIManager uiManager;
 
+    public Image reddot;
+
     #region 生命周期
 
     // 初始化按钮监听与面板默认状态。
@@ -24,6 +26,8 @@ public class TaskPanel : MonoBehaviour
         {
             taskManager = FindObjectOfType<TaskManager>();
         }
+
+        RegisterTaskEvents();
 
         if (openButton != null)
         {
@@ -43,30 +47,9 @@ public class TaskPanel : MonoBehaviour
         ClosePanel();
     }
 
-    // 监听作弊键：按下P将当前任务直接设为完成。
-    private void Update()
+    private void OnDestroy()
     {
-        if (!Input.GetKeyDown(KeyCode.P))
-        {
-            return;
-        }
-
-        if (taskManager == null)
-        {
-            taskManager = FindObjectOfType<TaskManager>();
-        }
-
-        if (taskManager == null)
-        {
-            return;
-        }
-
-        taskManager.CheatCompleteCurrentTask();
-
-        if (thePanel != null && thePanel.activeSelf)
-        {
-            RefreshTaskView();
-        }
+        UnregisterTaskEvents();
     }
 
     #endregion
@@ -111,6 +94,7 @@ public class TaskPanel : MonoBehaviour
         {
             SetTaskText("任务系统未初始化", "");
             SetReceiveButtonVisible(false);
+            SetRedDotVisible(false);
             return;
         }
 
@@ -119,11 +103,14 @@ public class TaskPanel : MonoBehaviour
         {
             SetTaskText("任务已完成", "暂无更多任务");
             SetReceiveButtonVisible(false);
+            SetRedDotVisible(false);
             return;
         }
 
         SetTaskText(currentTask.taskName, currentTask.description);
-        SetReceiveButtonVisible(taskManager.CanClaimCurrentTask());
+        bool canClaim = taskManager.CanClaimCurrentTask();
+        SetReceiveButtonVisible(canClaim);
+        SetRedDotVisible(canClaim);
     }
 
     // 点击领取按钮：领取当前任务奖励并切换到下一个任务显示。
@@ -167,6 +154,69 @@ public class TaskPanel : MonoBehaviour
         }
 
         receiveButton.gameObject.SetActive(isVisible);
+    }
+
+    // 控制任务小红点显示隐藏。
+    private void SetRedDotVisible(bool isVisible)
+    {
+        if (reddot == null)
+        {
+            return;
+        }
+
+        reddot.gameObject.SetActive(isVisible);
+    }
+
+    // 根据任务完成状态刷新小红点显示。
+    private void RefreshRedDot()
+    {
+        if (taskManager == null)
+        {
+            SetRedDotVisible(false);
+            return;
+        }
+
+        SetRedDotVisible(taskManager.CanClaimCurrentTask());
+    }
+
+    #endregion
+
+    #region 任务事件监听
+
+    // 订阅任务状态变化事件。
+    private void RegisterTaskEvents()
+    {
+        if (taskManager == null)
+        {
+            return;
+        }
+
+        taskManager.onTaskStateChanged -= HandleTaskStateChanged;
+        taskManager.onTaskStateChanged += HandleTaskStateChanged;
+    }
+
+    // 取消订阅任务状态变化事件。
+    private void UnregisterTaskEvents()
+    {
+        if (taskManager == null)
+        {
+            return;
+        }
+
+        taskManager.onTaskStateChanged -= HandleTaskStateChanged;
+    }
+
+    // 任务状态变化时刷新显示。
+    private void HandleTaskStateChanged()
+    {
+        if (thePanel != null && thePanel.activeSelf)
+        {
+            RefreshTaskView();
+        }
+        else
+        {
+            RefreshRedDot();
+        }
     }
 
     #endregion

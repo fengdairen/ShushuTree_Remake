@@ -79,6 +79,7 @@ public class TaskManager : MonoBehaviour
 
     private int currentTaskIndex = -1;
     private bool currentTaskCanClaim;
+    private bool currentTaskCheated;
 
     public Action onTaskStateChanged;
     public Action<int> onExpandSpaceRewardGranted;
@@ -97,9 +98,11 @@ public class TaskManager : MonoBehaviour
         InitializeTaskFlow();
     }
 
+    // 更新累计资源并刷新当前任务完成状态。
     private void Update()
     {
         UpdateAccumulatedResources();
+        UpdateCurrentTaskCompletion();
     }
 
     #endregion
@@ -153,12 +156,23 @@ public class TaskManager : MonoBehaviour
     {
         currentTaskIndex = taskDefinitions.Count > 0 ? 0 : -1;
         currentTaskCanClaim = false;
+        currentTaskCheated = false;
         UpdateCurrentTaskCompletion();
     }
 
     // 持续检测当前任务是否可收取
     private void UpdateCurrentTaskCompletion()
     {
+        if (currentTaskCheated && HasCurrentTask())
+        {
+            if (!currentTaskCanClaim)
+            {
+                currentTaskCanClaim = true;
+                NotifyTaskStateChanged();
+            }
+            return;
+        }
+
         bool newCanClaim = IsCurrentTaskCompleted();
         if (newCanClaim == currentTaskCanClaim)
         {
@@ -183,6 +197,7 @@ public class TaskManager : MonoBehaviour
             return;
         }
 
+        currentTaskCheated = true;
         currentTaskCanClaim = true;
         NotifyTaskStateChanged();
     }
@@ -229,6 +244,7 @@ public class TaskManager : MonoBehaviour
 
         currentTaskIndex += 1;
         currentTaskCanClaim = false;
+        currentTaskCheated = false;
         UpdateCurrentTaskCompletion();
         NotifyTaskStateChanged();
         return true;

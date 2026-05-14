@@ -98,6 +98,8 @@ public class BaseData : MonoBehaviour
     public static BaseData instance;
     private const int WallNutTypeCount = 12;
 
+    private TaskManager taskManager;
+
     #region 黑板键定义
     public static class BlackboardKeys
     {
@@ -229,22 +231,7 @@ public class BaseData : MonoBehaviour
         rootEnergy = Mathf.Clamp(rootEnergy, 0, 2000);
         UpdateMaxShuShu();
 
-        //作弊键
-        if(Input.GetKeyDown(KeyCode.Alpha1))
-        {
-            natureEnergy += 100;
-
-        }
-
-        if(Input.GetKeyDown(KeyCode.Alpha2))
-        {
-            fruitEnergy += 100;
-        }
-
-        if (Input.GetKeyDown(KeyCode.Alpha3)) 
-        {
-            rootEnergy += 100;
-        }
+        HandleCheatKeys();
     }
 
     // 编辑器修改序列化字段时，同步黑板数据。
@@ -253,6 +240,64 @@ public class BaseData : MonoBehaviour
         InitializeBlackboard();
         EnsureWallNutArray();
     }
+    #endregion
+
+    #region 作弊键
+
+    // 统一处理作弊键输入。
+    private void HandleCheatKeys()
+    {
+        if (Input.GetKeyDown(KeyCode.F1))
+        {
+            natureEnergy += 100;
+        }
+
+        if (Input.GetKeyDown(KeyCode.F2))
+        {
+            fruitEnergy += 100;
+        }
+
+        if (Input.GetKeyDown(KeyCode.F3))
+        {
+            rootEnergy += 100;
+        }
+
+        if (Input.GetKeyDown(KeyCode.F4))
+        {
+            CheatCompleteCurrentTask();
+        }
+    }
+
+    // 作弊完成当前任务。
+    private void CheatCompleteCurrentTask()
+    {
+        EnsureTaskManager();
+        if (taskManager == null)
+        {
+            return;
+        }
+
+        taskManager.CheatCompleteCurrentTask();
+    }
+
+    // 获取TaskManager实例。
+    private void EnsureTaskManager()
+    {
+        if (taskManager == null)
+        {
+            taskManager = FindObjectOfType<TaskManager>();
+        }
+
+        if (taskManager == null)
+        {
+            TaskManager[] managers = Resources.FindObjectsOfTypeAll<TaskManager>();
+            if (managers != null && managers.Length > 0)
+            {
+                taskManager = managers[0];
+            }
+        }
+    }
+
     #endregion
 
     #region 黑板数据访问

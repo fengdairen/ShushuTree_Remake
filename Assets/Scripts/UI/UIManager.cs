@@ -5,6 +5,26 @@ public class UIManager : MonoBehaviour
 {
     public static UIManager Instance { get; private set; }
 
+    [Header("数字键快捷面板")]
+    [SerializeField]
+    private GameObject wallNutPanel;
+    [SerializeField]
+    private GameObject hrPanel;
+    [SerializeField]
+    private GameObject shuStorePanel;
+    [SerializeField]
+    private GameObject buildPanel;
+    [SerializeField]
+    private string wallNutPanelKey;
+    [SerializeField]
+    private string hrPanelKey;
+    [SerializeField]
+    private string shuStorePanelKey;
+    [SerializeField]
+    private string buildPanelKey;
+
+    private TabPageManager tabPageManager;
+
     #region 面板注册
     [System.Serializable]
     public class PanelEntry
@@ -46,7 +66,127 @@ public class UIManager : MonoBehaviour
         {
             CloseCurrentPanelByEsc();
         }
+
+        HandleHotkeys();
     }
+    #endregion
+
+    #region 数字键快捷键
+
+    // 处理数字键快捷切换。
+    private void HandleHotkeys()
+    {
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            TogglePanelByHotkey(wallNutPanel, wallNutPanelKey);
+            return;
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            TogglePanelByHotkey(hrPanel, hrPanelKey);
+            return;
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha3))
+        {
+            TogglePanelByHotkey(shuStorePanel, shuStorePanelKey);
+            return;
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha4))
+        {
+            CloseCurrentPanelImmediate();
+            EnsureTabPageManager();
+            if (tabPageManager != null)
+            {
+                tabPageManager.ToggleDestroyModeByHotkey();
+            }
+            return;
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha5))
+        {
+            EnsureTabPageManager();
+            if (tabPageManager != null)
+            {
+                tabPageManager.ToggleBuildPanelByHotkey();
+            }
+            else
+            {
+                TogglePanelByHotkey(buildPanel, buildPanelKey);
+            }
+        }
+    }
+
+    // 快捷键切换面板显示。
+    private void TogglePanelByHotkey(GameObject panelObject, string panelKey)
+    {
+        if (panelObject == null && string.IsNullOrEmpty(panelKey))
+        {
+            return;
+        }
+
+        if (panelObject != null)
+        {
+            if (panelObject.activeSelf)
+            {
+                ClosePanel(panelObject);
+                return;
+            }
+
+            OpenPanel(panelObject);
+            return;
+        }
+
+        TogglePanelByKey(panelKey);
+    }
+
+    // 快捷键切换面板显示（按Key）。
+    private void TogglePanelByKey(string panelKey)
+    {
+        if (string.IsNullOrEmpty(panelKey))
+        {
+            return;
+        }
+
+        if (IsPanelOpen(panelKey))
+        {
+            ClosePanel(panelKey);
+            return;
+        }
+
+        OpenPanel(panelKey);
+    }
+
+    // 获取TabPageManager实例。
+    private void EnsureTabPageManager()
+    {
+        if (tabPageManager == null)
+        {
+            tabPageManager = FindObjectOfType<TabPageManager>();
+        }
+    }
+
+    #endregion
+
+    #region 快捷关闭
+
+    // 快捷关闭当前打开面板。
+    private void CloseCurrentPanelImmediate()
+    {
+        if (currentPanel != null && currentPanel.panelObject != null)
+        {
+            ClosePanel(currentPanel.panelKey);
+            return;
+        }
+
+        if (currentPanelObject != null)
+        {
+            ClosePanel(currentPanelObject);
+        }
+    }
+
     #endregion
 
     #region 面板控制
@@ -64,6 +204,7 @@ public class UIManager : MonoBehaviour
             return;
         }
 
+        HandleDestroyModeOnPanelOpen(entry.panelObject);
         CloseAllPanels();
         entry.panelObject.SetActive(true);
         currentPanel = entry;
@@ -86,6 +227,7 @@ public class UIManager : MonoBehaviour
             return;
         }
 
+        HandleDestroyModeOnPanelOpen(panelObject);
         CloseAllPanels();
         panelObject.SetActive(true);
         currentPanel = null;
@@ -254,6 +396,21 @@ public class UIManager : MonoBehaviour
         if (currentPanelObject != null && currentCloseOnEsc)
         {
             ClosePanel(currentPanelObject);
+        }
+    }
+
+    // 打开面板时处理拆除状态。
+    private void HandleDestroyModeOnPanelOpen(GameObject panelObject)
+    {
+        if (panelObject == null)
+        {
+            return;
+        }
+
+        TabPageManager tabPageManager = FindObjectOfType<TabPageManager>();
+        if (tabPageManager != null)
+        {
+            tabPageManager.CloseDestroyModeIfOpening(panelObject);
         }
     }
 

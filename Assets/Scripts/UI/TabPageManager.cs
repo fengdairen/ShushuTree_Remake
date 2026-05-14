@@ -45,7 +45,10 @@ public class TabPageManager : MonoBehaviour
     {
         buildingPanelWiget.pagenum = 0;
         buildingPanelWiget.UpdatePage();
-        if (isDestorying) OnDestoryButtonPressed();
+        if (isDestorying)
+        {
+            SetDestroyMode(false);
+        }
 
         EnsureUIManager();
         if (uiManager != null)
@@ -68,24 +71,63 @@ public class TabPageManager : MonoBehaviour
 
     void OnDestoryButtonPressed()
     {
-        if (isDestorying)
-        {
-                destoryButton.GetComponent<Image>().sprite = DestorySprite;
-                isDestorying = false;
-                if (bpDestory != null)
-                {
-                    bpDestory.isDestorying = false;
-                }
-        }
-        else
-        {
-                destoryButton.GetComponent<Image>().sprite = DestoryingSprite;
-                isDestorying = true;
-                if (bpDestory != null)
-                {
-                    bpDestory.isDestorying = true;
-                }
+        SetDestroyMode(!isDestorying);
+    }
 
+    #endregion
+
+    #region 快捷键接口
+
+    // 快捷键切换建造面板开关。
+    public void ToggleBuildPanelByHotkey()
+    {
+        if (tabPage != null && tabPage.activeSelf)
+        {
+            OnCancelButtonPressed();
+            return;
+        }
+
+        OnBuildButtonPressed();
+    }
+
+    // 快捷键切换拆除状态。
+    public void ToggleDestroyModeByHotkey()
+    {
+        OnDestoryButtonPressed();
+    }
+
+    #endregion
+
+    #region 拆除状态控制
+
+    // 打开其他面板时关闭拆除状态。
+    public void CloseDestroyModeIfOpening(GameObject panelObject)
+    {
+        if (!isDestorying)
+        {
+            return;
+        }
+
+        if (panelObject == tabPage)
+        {
+            return;
+        }
+
+        SetDestroyMode(false);
+    }
+
+    // 统一设置拆除状态及按钮表现。
+    private void SetDestroyMode(bool enable)
+    {
+        if (destoryButton != null)
+        {
+            destoryButton.GetComponent<Image>().sprite = enable ? DestoryingSprite : DestorySprite;
+        }
+
+        isDestorying = enable;
+        if (bpDestory != null)
+        {
+            bpDestory.isDestorying = enable;
         }
     }
 
